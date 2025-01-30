@@ -16,6 +16,7 @@ const InvestmentSummary = ({ data }: InvestmentSummaryProps) => {
   };
 
   const finalBalance = data[data.length - 1].balance;
+  const finalAdjustedBalance = data[data.length - 1].inflationAdjustedBalance;
   const totalContributions = data[data.length - 1].totalContributions;
   const totalInterest = finalBalance - totalContributions;
 
@@ -23,9 +24,15 @@ const InvestmentSummary = ({ data }: InvestmentSummaryProps) => {
     <Card className="p-6">
       <h3 className="text-lg font-semibold mb-4">Investment Summary</h3>
       <div className="space-y-4">
-        <div>
-          <p className="text-sm text-gray-500">Final Balance</p>
-          <p className="text-2xl font-bold text-primary">{formatCurrency(finalBalance)}</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Nominal Final Balance</p>
+            <p className="text-2xl font-bold text-primary">{formatCurrency(finalBalance)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Inflation-Adjusted Balance</p>
+            <p className="text-2xl font-bold text-red-500">{formatCurrency(finalAdjustedBalance)}</p>
+          </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>

@@ -32,8 +32,17 @@ const InvestmentChart = ({ data }: InvestmentChartProps) => {
             <Area
               type="monotone"
               dataKey="balance"
+              name="Nominal Balance"
               stroke="#0891B2"
               fill="#E0F2FE"
+              strokeWidth={2}
+            />
+            <Area
+              type="monotone"
+              dataKey="inflationAdjustedBalance"
+              name="Inflation-Adjusted Balance"
+              stroke="#EF4444"
+              fill="#FEE2E2"
               strokeWidth={2}
             />
           </AreaChart>
