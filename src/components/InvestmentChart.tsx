@@ -26,14 +26,26 @@ const InvestmentChart = ({ data }: InvestmentChartProps) => {
             <XAxis dataKey="age" />
             <YAxis tickFormatter={formatCurrency} />
             <Tooltip
-              formatter={(value: number) => [formatCurrency(value), "Balance"]}
+              formatter={(value: number, name: string) => [
+                formatCurrency(value),
+                name === "balance" ? "Investment Balance" : "Cost of Living"
+              ]}
               labelFormatter={(label) => `Age ${label}`}
             />
             <Area
               type="monotone"
               dataKey="balance"
+              name="Investment Balance"
               stroke="#0891B2"
               fill="#E0F2FE"
+              strokeWidth={2}
+            />
+            <Area
+              type="monotone"
+              dataKey="costOfLiving"
+              name="Cost of Living"
+              stroke="#EF4444"
+              fill="#FEE2E2"
               strokeWidth={2}
             />
           </AreaChart>

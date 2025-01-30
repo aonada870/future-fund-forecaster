@@ -18,6 +18,7 @@ const InvestmentSummary = ({ data }: InvestmentSummaryProps) => {
   const finalBalance = data[data.length - 1].balance;
   const totalContributions = data[data.length - 1].totalContributions;
   const totalInterest = finalBalance - totalContributions;
+  const finalCostOfLiving = data[data.length - 1].costOfLiving;
 
   return (
     <Card className="p-6">
@@ -36,6 +37,10 @@ const InvestmentSummary = ({ data }: InvestmentSummaryProps) => {
             <p className="text-sm text-gray-500">Total Interest Earned</p>
             <p className="text-lg font-semibold">{formatCurrency(totalInterest)}</p>
           </div>
+        </div>
+        <div>
+          <p className="text-sm text-gray-500">Final Annual Cost of Living</p>
+          <p className="text-lg font-semibold text-red-500">{formatCurrency(finalCostOfLiving)}</p>
         </div>
       </div>
     </Card>

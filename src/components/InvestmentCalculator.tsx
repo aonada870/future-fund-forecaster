@@ -12,13 +12,17 @@ export const InvestmentCalculator = () => {
   const [principal, setPrincipal] = useState(10000);
   const [monthlyContribution, setMonthlyContribution] = useState(500);
   const [interestRate, setInterestRate] = useState(7);
+  const [costOfLiving, setCostOfLiving] = useState(50000);
+  const [inflationRate, setInflationRate] = useState(2.5);
 
   const investmentData = calculateInvestmentGrowth(
     currentAge,
     targetAge,
     principal,
     monthlyContribution,
-    interestRate
+    interestRate,
+    costOfLiving,
+    inflationRate
   );
 
   return (
@@ -83,6 +87,30 @@ export const InvestmentCalculator = () => {
                 type="number"
                 value={interestRate}
                 onChange={(e) => setInterestRate(Number(e.target.value))}
+                min={0}
+                max={100}
+                step={0.1}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="costOfLiving">Annual Cost of Living ($)</Label>
+              <Input
+                id="costOfLiving"
+                type="number"
+                value={costOfLiving}
+                onChange={(e) => setCostOfLiving(Number(e.target.value))}
+                min={0}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="inflationRate">Annual Inflation Rate (%)</Label>
+              <Input
+                id="inflationRate"
+                type="number"
+                value={inflationRate}
+                onChange={(e) => setInflationRate(Number(e.target.value))}
                 min={0}
                 max={100}
                 step={0.1}
