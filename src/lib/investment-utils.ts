@@ -11,11 +11,13 @@ export const calculateInvestmentGrowth = (
   lifeExpectancy: number,
   principal: number,
   monthlyContribution: number,
+  postRetirementContribution: number,
   interestRate: number,
   costOfLiving: number,
   inflationRate: number
 ): InvestmentDataPoint[] => {
   const yearlyContribution = monthlyContribution * 12;
+  const yearlyPostRetirementContribution = postRetirementContribution * 12;
   const years = lifeExpectancy - currentAge;
   const data: InvestmentDataPoint[] = [];
   let balance = principal;
@@ -42,6 +44,9 @@ export const calculateInvestmentGrowth = (
     if (currentAge_i <= targetAge) {
       balance += yearlyContribution;
       totalContributions += yearlyContribution;
+    } else {
+      balance += yearlyPostRetirementContribution;
+      totalContributions += yearlyPostRetirementContribution;
     }
     
     // Adjust cost of living for inflation

@@ -12,6 +12,7 @@ export const InvestmentCalculator = () => {
   const [lifeExpectancy, setLifeExpectancy] = useState(85);
   const [principal, setPrincipal] = useState(10000);
   const [monthlyContribution, setMonthlyContribution] = useState(500);
+  const [postRetirementContribution, setPostRetirementContribution] = useState(0);
   const [interestRate, setInterestRate] = useState(7);
   const [costOfLiving, setCostOfLiving] = useState(50000);
   const [inflationRate, setInflationRate] = useState(2.5);
@@ -22,6 +23,7 @@ export const InvestmentCalculator = () => {
     lifeExpectancy,
     principal,
     monthlyContribution,
+    postRetirementContribution,
     interestRate,
     costOfLiving,
     inflationRate
@@ -90,6 +92,17 @@ export const InvestmentCalculator = () => {
                 type="number"
                 value={monthlyContribution}
                 onChange={(e) => setMonthlyContribution(Number(e.target.value))}
+                min={0}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="postRetirementContribution">Post-Retirement Monthly Contribution ($)</Label>
+              <Input
+                id="postRetirementContribution"
+                type="number"
+                value={postRetirementContribution}
+                onChange={(e) => setPostRetirementContribution(Number(e.target.value))}
                 min={0}
               />
             </div>
