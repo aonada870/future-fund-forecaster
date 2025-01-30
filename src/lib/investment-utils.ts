@@ -8,6 +8,7 @@ export interface InvestmentDataPoint {
 export const calculateInvestmentGrowth = (
   currentAge: number,
   targetAge: number,
+  lifeExpectancy: number,
   principal: number,
   monthlyContribution: number,
   interestRate: number,
@@ -15,22 +16,35 @@ export const calculateInvestmentGrowth = (
   inflationRate: number
 ): InvestmentDataPoint[] => {
   const yearlyContribution = monthlyContribution * 12;
-  const years = targetAge - currentAge;
+  const years = lifeExpectancy - currentAge;
   const data: InvestmentDataPoint[] = [];
   let balance = principal;
   let totalContributions = principal;
   let adjustedCostOfLiving = costOfLiving;
 
   for (let i = 0; i <= years; i++) {
+    const currentAge_i = currentAge + i;
+    
+    // After retirement, subtract cost of living from balance
+    if (currentAge_i > targetAge) {
+      balance = balance - adjustedCostOfLiving;
+    }
+
     data.push({
-      age: currentAge + i,
+      age: currentAge_i,
       balance: Math.round(balance),
       totalContributions: Math.round(totalContributions),
       costOfLiving: Math.round(adjustedCostOfLiving)
     });
 
-    balance = balance * (1 + interestRate / 100) + yearlyContribution;
-    totalContributions += yearlyContribution;
+    // Apply interest and contributions
+    balance = balance * (1 + interestRate / 100);
+    if (currentAge_i <= targetAge) {
+      balance += yearlyContribution;
+      totalContributions += yearlyContribution;
+    }
+    
+    // Adjust cost of living for inflation
     adjustedCostOfLiving = adjustedCostOfLiving * (1 + inflationRate / 100);
   }
 

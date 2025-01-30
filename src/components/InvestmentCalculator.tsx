@@ -9,6 +9,7 @@ import { calculateInvestmentGrowth } from "@/lib/investment-utils";
 export const InvestmentCalculator = () => {
   const [currentAge, setCurrentAge] = useState(30);
   const [targetAge, setTargetAge] = useState(65);
+  const [lifeExpectancy, setLifeExpectancy] = useState(85);
   const [principal, setPrincipal] = useState(10000);
   const [monthlyContribution, setMonthlyContribution] = useState(500);
   const [interestRate, setInterestRate] = useState(7);
@@ -18,6 +19,7 @@ export const InvestmentCalculator = () => {
   const investmentData = calculateInvestmentGrowth(
     currentAge,
     targetAge,
+    lifeExpectancy,
     principal,
     monthlyContribution,
     interestRate,
@@ -47,13 +49,25 @@ export const InvestmentCalculator = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="targetAge">Target Age</Label>
+              <Label htmlFor="targetAge">Target Retirement Age</Label>
               <Input
                 id="targetAge"
                 type="number"
                 value={targetAge}
                 onChange={(e) => setTargetAge(Number(e.target.value))}
                 min={currentAge + 1}
+                max={lifeExpectancy}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lifeExpectancy">Life Expectancy</Label>
+              <Input
+                id="lifeExpectancy"
+                type="number"
+                value={lifeExpectancy}
+                onChange={(e) => setLifeExpectancy(Number(e.target.value))}
+                min={targetAge + 1}
                 max={120}
               />
             </div>
