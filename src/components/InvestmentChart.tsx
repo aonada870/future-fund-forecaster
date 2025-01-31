@@ -16,6 +16,9 @@ const InvestmentChart = ({ data }: InvestmentChartProps) => {
     }).format(value);
   };
 
+  const uniqueStreams = [...new Set(data.map(d => d.streamId))];
+  const colors = ['#0891B2', '#2563EB', '#7C3AED', '#DB2777', '#DC2626'];
+
   return (
     <Card className="p-6">
       <h3 className="text-lg font-semibold mb-4">Investment Growth Over Time</h3>
@@ -28,26 +31,43 @@ const InvestmentChart = ({ data }: InvestmentChartProps) => {
             <Tooltip
               formatter={(value: number, name: string) => [
                 formatCurrency(value),
-                name === "balance" ? "Investment Balance" : "Cost of Living"
+                name.includes("balance") ? "Investment Balance" : "Cost of Living"
               ]}
               labelFormatter={(label) => `Age ${label}`}
             />
-            <Area
-              type="monotone"
-              dataKey="balance"
-              name="Investment Balance"
-              stroke="#0891B2"
-              fill="#E0F2FE"
-              strokeWidth={2}
-            />
-            <Area
-              type="monotone"
-              dataKey="costOfLiving"
-              name="Cost of Living"
-              stroke="#EF4444"
-              fill="#FEE2E2"
-              strokeWidth={2}
-            />
+            {uniqueStreams.length === 1 || !data[0]?.streamId ? (
+              <>
+                <Area
+                  type="monotone"
+                  dataKey="balance"
+                  name="Investment Balance"
+                  stroke="#0891B2"
+                  fill="#E0F2FE"
+                  strokeWidth={2}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="costOfLiving"
+                  name="Cost of Living"
+                  stroke="#EF4444"
+                  fill="#FEE2E2"
+                  strokeWidth={2}
+                />
+              </>
+            ) : (
+              uniqueStreams.map((streamId, index) => (
+                <Area
+                  key={streamId}
+                  type="monotone"
+                  dataKey="balance"
+                  name={`Investment Balance ${index + 1}`}
+                  stroke={colors[index % colors.length]}
+                  fill={`${colors[index % colors.length]}33`}
+                  strokeWidth={2}
+                  data={data.filter(d => d.streamId === streamId)}
+                />
+              ))
+            )}
           </AreaChart>
         </ResponsiveContainer>
       </div>
