@@ -16,30 +16,30 @@ export const calculateInvestmentGrowth = (
   costOfLiving: number,
   inflationRate: number
 ): InvestmentDataPoint[] => {
-  // Input validation
-  if (currentAge >= targetAge || targetAge >= lifeExpectancy) {
-    // Return initial state if invalid parameters
-    return [{
-      age: currentAge,
-      balance: principal,
-      totalContributions: principal,
-      costOfLiving: costOfLiving
-    }];
-  }
+  // Input validation with default values
+  const validCurrentAge = Math.max(0, currentAge);
+  const validTargetAge = Math.max(validCurrentAge + 1, targetAge);
+  const validLifeExpectancy = Math.max(validTargetAge + 1, lifeExpectancy);
+  const validPrincipal = Math.max(0, principal);
+  const validMonthlyContribution = Math.max(0, monthlyContribution);
+  const validPostRetirementContribution = Math.max(0, postRetirementContribution);
+  const validInterestRate = Math.max(0, interestRate);
+  const validCostOfLiving = Math.max(0, costOfLiving);
+  const validInflationRate = Math.max(0, inflationRate);
 
-  const yearlyContribution = monthlyContribution * 12;
-  const yearlyPostRetirementContribution = postRetirementContribution * 12;
-  const years = lifeExpectancy - currentAge;
+  const yearlyContribution = validMonthlyContribution * 12;
+  const yearlyPostRetirementContribution = validPostRetirementContribution * 12;
+  const years = validLifeExpectancy - validCurrentAge;
   const data: InvestmentDataPoint[] = [];
-  let balance = principal;
-  let totalContributions = principal;
-  let adjustedCostOfLiving = costOfLiving;
+  let balance = validPrincipal;
+  let totalContributions = validPrincipal;
+  let adjustedCostOfLiving = validCostOfLiving;
 
   for (let i = 0; i <= years; i++) {
-    const currentAge_i = currentAge + i;
+    const currentAge_i = validCurrentAge + i;
     
     // After retirement, subtract cost of living from balance
-    if (currentAge_i > targetAge) {
+    if (currentAge_i > validTargetAge) {
       balance = Math.max(0, balance - adjustedCostOfLiving);
     }
 
@@ -51,8 +51,8 @@ export const calculateInvestmentGrowth = (
     });
 
     // Apply interest and contributions
-    balance = balance * (1 + interestRate / 100);
-    if (currentAge_i <= targetAge) {
+    balance = balance * (1 + validInterestRate / 100);
+    if (currentAge_i <= validTargetAge) {
       balance += yearlyContribution;
       totalContributions += yearlyContribution;
     } else {
@@ -61,7 +61,17 @@ export const calculateInvestmentGrowth = (
     }
     
     // Adjust cost of living for inflation
-    adjustedCostOfLiving = adjustedCostOfLiving * (1 + inflationRate / 100);
+    adjustedCostOfLiving = adjustedCostOfLiving * (1 + validInflationRate / 100);
+  }
+
+  // Ensure we always return at least one data point
+  if (data.length === 0) {
+    data.push({
+      age: validCurrentAge,
+      balance: validPrincipal,
+      totalContributions: validPrincipal,
+      costOfLiving: validCostOfLiving
+    });
   }
 
   return data;

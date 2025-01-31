@@ -15,6 +15,16 @@ const InvestmentSummary = ({ data }: InvestmentSummaryProps) => {
     }).format(value);
   };
 
+  // Handle empty or undefined data
+  if (!data || data.length === 0) {
+    return (
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Investment Summary</h3>
+        <p className="text-sm text-gray-500">No investment data available</p>
+      </Card>
+    );
+  }
+
   const finalBalance = data[data.length - 1].balance;
   const totalContributions = data[data.length - 1].totalContributions;
   const totalInterest = finalBalance - totalContributions;
