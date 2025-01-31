@@ -16,6 +16,17 @@ export const calculateInvestmentGrowth = (
   costOfLiving: number,
   inflationRate: number
 ): InvestmentDataPoint[] => {
+  // Input validation
+  if (currentAge >= targetAge || targetAge >= lifeExpectancy) {
+    // Return initial state if invalid parameters
+    return [{
+      age: currentAge,
+      balance: principal,
+      totalContributions: principal,
+      costOfLiving: costOfLiving
+    }];
+  }
+
   const yearlyContribution = monthlyContribution * 12;
   const yearlyPostRetirementContribution = postRetirementContribution * 12;
   const years = lifeExpectancy - currentAge;
@@ -29,12 +40,12 @@ export const calculateInvestmentGrowth = (
     
     // After retirement, subtract cost of living from balance
     if (currentAge_i > targetAge) {
-      balance = balance - adjustedCostOfLiving;
+      balance = Math.max(0, balance - adjustedCostOfLiving);
     }
 
     data.push({
       age: currentAge_i,
-      balance: Math.round(balance),
+      balance: Math.max(0, Math.round(balance)),
       totalContributions: Math.round(totalContributions),
       costOfLiving: Math.round(adjustedCostOfLiving)
     });
