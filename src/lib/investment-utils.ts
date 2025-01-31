@@ -3,34 +3,29 @@ export interface InvestmentDataPoint {
   balance: number;
   totalContributions: number;
   costOfLiving: number;
-  streamId?: string; // Added to identify different streams
 }
 
-export interface InvestmentStream {
-  id: string;
-  name: string;
-  currentAge: number;
-  targetAge: number;
-  lifeExpectancy: number;
-  principal: number;
-  monthlyContribution: number;
-  postRetirementContribution: number;
-  interestRate: number;
-  costOfLiving: number;
-  inflationRate: number;
-}
-
-export const calculateInvestmentGrowth = (stream: InvestmentStream): InvestmentDataPoint[] => {
+export const calculateInvestmentGrowth = (
+  currentAge: number,
+  targetAge: number,
+  lifeExpectancy: number,
+  principal: number,
+  monthlyContribution: number,
+  postRetirementContribution: number,
+  interestRate: number,
+  costOfLiving: number,
+  inflationRate: number
+): InvestmentDataPoint[] => {
   // Input validation with default values
-  const validCurrentAge = Math.max(0, stream.currentAge);
-  const validTargetAge = Math.max(validCurrentAge + 1, stream.targetAge);
-  const validLifeExpectancy = Math.max(validTargetAge + 1, stream.lifeExpectancy);
-  const validPrincipal = Math.max(0, stream.principal);
-  const validMonthlyContribution = Math.max(0, stream.monthlyContribution);
-  const validPostRetirementContribution = Math.max(0, stream.postRetirementContribution);
-  const validInterestRate = Math.max(0, stream.interestRate);
-  const validCostOfLiving = Math.max(0, stream.costOfLiving);
-  const validInflationRate = Math.max(0, stream.inflationRate);
+  const validCurrentAge = Math.max(0, currentAge);
+  const validTargetAge = Math.max(validCurrentAge + 1, targetAge);
+  const validLifeExpectancy = Math.max(validTargetAge + 1, lifeExpectancy);
+  const validPrincipal = Math.max(0, principal);
+  const validMonthlyContribution = Math.max(0, monthlyContribution);
+  const validPostRetirementContribution = Math.max(0, postRetirementContribution);
+  const validInterestRate = Math.max(0, interestRate);
+  const validCostOfLiving = Math.max(0, costOfLiving);
+  const validInflationRate = Math.max(0, inflationRate);
 
   const yearlyContribution = validMonthlyContribution * 12;
   const yearlyPostRetirementContribution = validPostRetirementContribution * 12;
@@ -52,8 +47,7 @@ export const calculateInvestmentGrowth = (stream: InvestmentStream): InvestmentD
       age: currentAge_i,
       balance: Math.max(0, Math.round(balance)),
       totalContributions: Math.round(totalContributions),
-      costOfLiving: Math.round(adjustedCostOfLiving),
-      streamId: stream.id
+      costOfLiving: Math.round(adjustedCostOfLiving)
     });
 
     // Apply interest and contributions
@@ -76,27 +70,9 @@ export const calculateInvestmentGrowth = (stream: InvestmentStream): InvestmentD
       age: validCurrentAge,
       balance: validPrincipal,
       totalContributions: validPrincipal,
-      costOfLiving: validCostOfLiving,
-      streamId: stream.id
+      costOfLiving: validCostOfLiving
     });
   }
 
   return data;
-};
-
-export const combineInvestmentData = (streams: InvestmentStream[]): InvestmentDataPoint[] => {
-  if (!streams.length) return [];
-
-  const allData = streams.flatMap(stream => calculateInvestmentGrowth(stream));
-  const ages = [...new Set(allData.map(d => d.age))].sort((a, b) => a - b);
-
-  return ages.map(age => {
-    const pointsAtAge = allData.filter(d => d.age === age);
-    return {
-      age,
-      balance: pointsAtAge.reduce((sum, p) => sum + p.balance, 0),
-      totalContributions: pointsAtAge.reduce((sum, p) => sum + p.totalContributions, 0),
-      costOfLiving: pointsAtAge.reduce((sum, p) => sum + p.costOfLiving, 0)
-    };
-  });
 };

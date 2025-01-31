@@ -2,74 +2,32 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import InvestmentChart from "./InvestmentChart";
 import InvestmentSummary from "./InvestmentSummary";
-import { InvestmentStream, calculateInvestmentGrowth, combineInvestmentData } from "@/lib/investment-utils";
-import { v4 as uuidv4 } from "uuid";
+import { calculateInvestmentGrowth } from "@/lib/investment-utils";
 
 export const InvestmentCalculator = () => {
-  const [streams, setStreams] = useState<InvestmentStream[]>([
-    {
-      id: uuidv4(),
-      name: "Investment Stream 1",
-      currentAge: 30,
-      targetAge: 65,
-      lifeExpectancy: 85,
-      principal: 10000,
-      monthlyContribution: 500,
-      postRetirementContribution: 0,
-      interestRate: 7,
-      costOfLiving: 50000,
-      inflationRate: 2.5,
-    },
-  ]);
+  const [currentAge, setCurrentAge] = useState(30);
+  const [targetAge, setTargetAge] = useState(65);
+  const [lifeExpectancy, setLifeExpectancy] = useState(85);
+  const [principal, setPrincipal] = useState(10000);
+  const [monthlyContribution, setMonthlyContribution] = useState(500);
+  const [postRetirementContribution, setPostRetirementContribution] = useState(0);
+  const [interestRate, setInterestRate] = useState(7);
+  const [costOfLiving, setCostOfLiving] = useState(50000);
+  const [inflationRate, setInflationRate] = useState(2.5);
 
-  const [selectedStreams, setSelectedStreams] = useState<string[]>([streams[0].id]);
-  const [showCombined, setShowCombined] = useState(false);
-
-  const addStream = () => {
-    const newStream = {
-      id: uuidv4(),
-      name: `Investment Stream ${streams.length + 1}`,
-      currentAge: 30,
-      targetAge: 65,
-      lifeExpectancy: 85,
-      principal: 10000,
-      monthlyContribution: 500,
-      postRetirementContribution: 0,
-      interestRate: 7,
-      costOfLiving: 50000,
-      inflationRate: 2.5,
-    };
-    setStreams([...streams, newStream]);
-    setSelectedStreams([...selectedStreams, newStream.id]);
-  };
-
-  const removeStream = (id: string) => {
-    setStreams(streams.filter(s => s.id !== id));
-    setSelectedStreams(selectedStreams.filter(s => s !== id));
-  };
-
-  const updateStream = (id: string, updates: Partial<InvestmentStream>) => {
-    setStreams(streams.map(stream => 
-      stream.id === id ? { ...stream, ...updates } : stream
-    ));
-  };
-
-  const toggleStreamSelection = (id: string) => {
-    setSelectedStreams(prev => 
-      prev.includes(id) 
-        ? prev.filter(s => s !== id)
-        : [...prev, id]
-    );
-  };
-
-  const filteredStreams = streams.filter(s => selectedStreams.includes(s.id));
-  const investmentData = showCombined 
-    ? combineInvestmentData(filteredStreams)
-    : filteredStreams.flatMap(stream => calculateInvestmentGrowth(stream));
+  const investmentData = calculateInvestmentGrowth(
+    currentAge,
+    targetAge,
+    lifeExpectancy,
+    principal,
+    monthlyContribution,
+    postRetirementContribution,
+    interestRate,
+    costOfLiving,
+    inflationRate
+  );
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -78,158 +36,117 @@ export const InvestmentCalculator = () => {
       </h1>
       
       <div className="grid gap-8 md:grid-cols-2">
-        <div className="space-y-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-2xl font-semibold">Investment Streams</h2>
-            {streams.length < 5 && (
-              <Button onClick={addStream}>Add Stream</Button>
-            )}
+        <Card className="p-6">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="currentAge">Current Age</Label>
+              <Input
+                id="currentAge"
+                type="number"
+                value={currentAge}
+                onChange={(e) => setCurrentAge(Number(e.target.value))}
+                min={0}
+                max={targetAge - 1}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="targetAge">Target Retirement Age</Label>
+              <Input
+                id="targetAge"
+                type="number"
+                value={targetAge}
+                onChange={(e) => setTargetAge(Number(e.target.value))}
+                min={currentAge + 1}
+                max={lifeExpectancy}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="lifeExpectancy">Life Expectancy</Label>
+              <Input
+                id="lifeExpectancy"
+                type="number"
+                value={lifeExpectancy}
+                onChange={(e) => setLifeExpectancy(Number(e.target.value))}
+                min={targetAge + 1}
+                max={120}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="principal">Initial Investment ($)</Label>
+              <Input
+                id="principal"
+                type="number"
+                value={principal}
+                onChange={(e) => setPrincipal(Number(e.target.value))}
+                min={0}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="monthlyContribution">Monthly Contribution ($)</Label>
+              <Input
+                id="monthlyContribution"
+                type="number"
+                value={monthlyContribution}
+                onChange={(e) => setMonthlyContribution(Number(e.target.value))}
+                min={0}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="postRetirementContribution">Post-Retirement Monthly Contribution ($)</Label>
+              <Input
+                id="postRetirementContribution"
+                type="number"
+                value={postRetirementContribution}
+                onChange={(e) => setPostRetirementContribution(Number(e.target.value))}
+                min={0}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="interestRate">Annual Interest Rate (%)</Label>
+              <Input
+                id="interestRate"
+                type="number"
+                value={interestRate}
+                onChange={(e) => setInterestRate(Number(e.target.value))}
+                min={0}
+                max={100}
+                step={0.1}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="costOfLiving">Annual Cost of Living ($)</Label>
+              <Input
+                id="costOfLiving"
+                type="number"
+                value={costOfLiving}
+                onChange={(e) => setCostOfLiving(Number(e.target.value))}
+                min={0}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="inflationRate">Annual Inflation Rate (%)</Label>
+              <Input
+                id="inflationRate"
+                type="number"
+                value={inflationRate}
+                onChange={(e) => setInflationRate(Number(e.target.value))}
+                min={0}
+                max={100}
+                step={0.1}
+              />
+            </div>
           </div>
-
-          {streams.map((stream) => (
-            <Card key={stream.id} className="p-6">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      checked={selectedStreams.includes(stream.id)}
-                      onCheckedChange={() => toggleStreamSelection(stream.id)}
-                    />
-                    <Input
-                      value={stream.name}
-                      onChange={(e) => updateStream(stream.id, { name: e.target.value })}
-                      className="max-w-[200px]"
-                    />
-                  </div>
-                  {streams.length > 1 && (
-                    <Button
-                      variant="destructive"
-                      onClick={() => removeStream(stream.id)}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`currentAge-${stream.id}`}>Current Age</Label>
-                  <Input
-                    id={`currentAge-${stream.id}`}
-                    type="number"
-                    value={stream.currentAge}
-                    onChange={(e) => updateStream(stream.id, { currentAge: Number(e.target.value) })}
-                    min={0}
-                    max={stream.targetAge - 1}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`targetAge-${stream.id}`}>Target Retirement Age</Label>
-                  <Input
-                    id={`targetAge-${stream.id}`}
-                    type="number"
-                    value={stream.targetAge}
-                    onChange={(e) => updateStream(stream.id, { targetAge: Number(e.target.value) })}
-                    min={stream.currentAge + 1}
-                    max={stream.lifeExpectancy}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`lifeExpectancy-${stream.id}`}>Life Expectancy</Label>
-                  <Input
-                    id={`lifeExpectancy-${stream.id}`}
-                    type="number"
-                    value={stream.lifeExpectancy}
-                    onChange={(e) => updateStream(stream.id, { lifeExpectancy: Number(e.target.value) })}
-                    min={stream.targetAge + 1}
-                    max={120}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`principal-${stream.id}`}>Initial Investment ($)</Label>
-                  <Input
-                    id={`principal-${stream.id}`}
-                    type="number"
-                    value={stream.principal}
-                    onChange={(e) => updateStream(stream.id, { principal: Number(e.target.value) })}
-                    min={0}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`monthlyContribution-${stream.id}`}>Monthly Contribution ($)</Label>
-                  <Input
-                    id={`monthlyContribution-${stream.id}`}
-                    type="number"
-                    value={stream.monthlyContribution}
-                    onChange={(e) => updateStream(stream.id, { monthlyContribution: Number(e.target.value) })}
-                    min={0}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`postRetirementContribution-${stream.id}`}>Post-Retirement Monthly Contribution ($)</Label>
-                  <Input
-                    id={`postRetirementContribution-${stream.id}`}
-                    type="number"
-                    value={stream.postRetirementContribution}
-                    onChange={(e) => updateStream(stream.id, { postRetirementContribution: Number(e.target.value) })}
-                    min={0}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`interestRate-${stream.id}`}>Annual Interest Rate (%)</Label>
-                  <Input
-                    id={`interestRate-${stream.id}`}
-                    type="number"
-                    value={stream.interestRate}
-                    onChange={(e) => updateStream(stream.id, { interestRate: Number(e.target.value) })}
-                    min={0}
-                    max={100}
-                    step={0.1}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`costOfLiving-${stream.id}`}>Annual Cost of Living ($)</Label>
-                  <Input
-                    id={`costOfLiving-${stream.id}`}
-                    type="number"
-                    value={stream.costOfLiving}
-                    onChange={(e) => updateStream(stream.id, { costOfLiving: Number(e.target.value) })}
-                    min={0}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor={`inflationRate-${stream.id}`}>Annual Inflation Rate (%)</Label>
-                  <Input
-                    id={`inflationRate-${stream.id}`}
-                    type="number"
-                    value={stream.inflationRate}
-                    onChange={(e) => updateStream(stream.id, { inflationRate: Number(e.target.value) })}
-                    min={0}
-                    max={100}
-                    step={0.1}
-                  />
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        </Card>
 
         <div className="space-y-8">
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={showCombined}
-              onCheckedChange={(checked) => setShowCombined(checked === true)}
-              id="showCombined"
-            />
-            <Label htmlFor="showCombined">Show Combined Results</Label>
-          </div>
           <InvestmentSummary data={investmentData} />
           <InvestmentChart data={investmentData} />
         </div>
