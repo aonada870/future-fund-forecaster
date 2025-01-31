@@ -5,15 +5,6 @@ export interface InvestmentDataPoint {
   costOfLiving: number;
 }
 
-export interface InvestmentStream {
-  id: string;
-  name: string;
-  principal: number;
-  monthlyContribution: number;
-  postRetirementContribution: number;
-  interestRate: number;
-}
-
 export const calculateInvestmentGrowth = (
   currentAge: number,
   targetAge: number,
@@ -74,55 +65,4 @@ export const calculateInvestmentGrowth = (
   }
 
   return data;
-};
-
-export const calculateCombinedInvestmentGrowth = (
-  streams: InvestmentStream[],
-  currentAge: number,
-  targetAge: number,
-  lifeExpectancy: number,
-  costOfLiving: number,
-  inflationRate: number
-): { [key: string]: InvestmentDataPoint[] } => {
-  const results: { [key: string]: InvestmentDataPoint[] } = {};
-  
-  streams.forEach(stream => {
-    results[stream.id] = calculateInvestmentGrowth(
-      currentAge,
-      targetAge,
-      lifeExpectancy,
-      stream.principal,
-      stream.monthlyContribution,
-      stream.postRetirementContribution,
-      stream.interestRate,
-      costOfLiving,
-      inflationRate
-    );
-  });
-
-  // Calculate combined data
-  if (streams.length > 0) {
-    const combinedData: InvestmentDataPoint[] = [];
-    const firstStream = results[streams[0].id];
-    
-    firstStream.forEach((_, index) => {
-      const combinedPoint = {
-        age: firstStream[index].age,
-        balance: 0,
-        totalContributions: 0,
-        costOfLiving: firstStream[index].costOfLiving
-      };
-      
-      Object.values(results).forEach(streamData => {
-        combinedPoint.balance += streamData[index].balance;
-        combinedPoint.totalContributions += streamData[index].totalContributions;
-      });
-      
-      combinedData.push(combinedPoint);
-    });
-    
-    results.combined = combinedData;
-  }
-
-  return results;
 };
