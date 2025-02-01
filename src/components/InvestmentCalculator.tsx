@@ -36,115 +36,123 @@ export const InvestmentCalculator = () => {
       </h1>
       
       <div className="grid gap-8 md:grid-cols-2">
-        <Card className="p-6">
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="currentAge">Current Age</Label>
-              <Input
-                id="currentAge"
-                type="number"
-                value={currentAge}
-                onChange={(e) => setCurrentAge(Number(e.target.value))}
-                min={0}
-                max={targetAge - 1}
-              />
-            </div>
+        <div className="space-y-8">
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4 text-primary">Investment Stream</h2>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="currentAge">Current Age</Label>
+                <Input
+                  id="currentAge"
+                  type="number"
+                  value={currentAge}
+                  onChange={(e) => setCurrentAge(Number(e.target.value))}
+                  min={0}
+                  max={targetAge - 1}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="targetAge">Target Retirement Age</Label>
-              <Input
-                id="targetAge"
-                type="number"
-                value={targetAge}
-                onChange={(e) => setTargetAge(Number(e.target.value))}
-                min={currentAge + 1}
-                max={lifeExpectancy}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="targetAge">Target Retirement Age</Label>
+                <Input
+                  id="targetAge"
+                  type="number"
+                  value={targetAge}
+                  onChange={(e) => setTargetAge(Number(e.target.value))}
+                  min={currentAge + 1}
+                  max={lifeExpectancy}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="lifeExpectancy">Life Expectancy</Label>
-              <Input
-                id="lifeExpectancy"
-                type="number"
-                value={lifeExpectancy}
-                onChange={(e) => setLifeExpectancy(Number(e.target.value))}
-                min={targetAge + 1}
-                max={120}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="lifeExpectancy">Life Expectancy</Label>
+                <Input
+                  id="lifeExpectancy"
+                  type="number"
+                  value={lifeExpectancy}
+                  onChange={(e) => setLifeExpectancy(Number(e.target.value))}
+                  min={targetAge + 1}
+                  max={120}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="principal">Initial Investment ($)</Label>
-              <Input
-                id="principal"
-                type="number"
-                value={principal}
-                onChange={(e) => setPrincipal(Number(e.target.value))}
-                min={0}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="principal">Initial Investment ($)</Label>
+                <Input
+                  id="principal"
+                  type="number"
+                  value={principal}
+                  onChange={(e) => setPrincipal(Number(e.target.value))}
+                  min={0}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="monthlyContribution">Monthly Contribution ($)</Label>
-              <Input
-                id="monthlyContribution"
-                type="number"
-                value={monthlyContribution}
-                onChange={(e) => setMonthlyContribution(Number(e.target.value))}
-                min={0}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="monthlyContribution">Monthly Contribution ($)</Label>
+                <Input
+                  id="monthlyContribution"
+                  type="number"
+                  value={monthlyContribution}
+                  onChange={(e) => setMonthlyContribution(Number(e.target.value))}
+                  min={0}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="postRetirementContribution">Post-Retirement Monthly Contribution ($)</Label>
-              <Input
-                id="postRetirementContribution"
-                type="number"
-                value={postRetirementContribution}
-                onChange={(e) => setPostRetirementContribution(Number(e.target.value))}
-                min={0}
-              />
-            </div>
+              <div className="space-y-2">
+                <Label htmlFor="postRetirementContribution">Post-Retirement Monthly Contribution ($)</Label>
+                <Input
+                  id="postRetirementContribution"
+                  type="number"
+                  value={postRetirementContribution}
+                  onChange={(e) => setPostRetirementContribution(Number(e.target.value))}
+                  min={0}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="interestRate">Annual Interest Rate (%)</Label>
-              <Input
-                id="interestRate"
-                type="number"
-                value={interestRate}
-                onChange={(e) => setInterestRate(Number(e.target.value))}
-                min={0}
-                max={100}
-                step={0.1}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="interestRate">Annual Interest Rate (%)</Label>
+                <Input
+                  id="interestRate"
+                  type="number"
+                  value={interestRate}
+                  onChange={(e) => setInterestRate(Number(e.target.value))}
+                  min={0}
+                  max={100}
+                  step={0.1}
+                />
+              </div>
             </div>
+          </Card>
 
-            <div className="space-y-2">
-              <Label htmlFor="costOfLiving">Annual Cost of Living ($)</Label>
-              <Input
-                id="costOfLiving"
-                type="number"
-                value={costOfLiving}
-                onChange={(e) => setCostOfLiving(Number(e.target.value))}
-                min={0}
-              />
-            </div>
+          <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4 text-primary">Cost of Living</h2>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="costOfLiving">Annual Cost of Living ($)</Label>
+                <Input
+                  id="costOfLiving"
+                  type="number"
+                  value={costOfLiving}
+                  onChange={(e) => setCostOfLiving(Number(e.target.value))}
+                  min={0}
+                />
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="inflationRate">Annual Inflation Rate (%)</Label>
-              <Input
-                id="inflationRate"
-                type="number"
-                value={inflationRate}
-                onChange={(e) => setInflationRate(Number(e.target.value))}
-                min={0}
-                max={100}
-                step={0.1}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="inflationRate">Annual Inflation Rate (%)</Label>
+                <Input
+                  id="inflationRate"
+                  type="number"
+                  value={inflationRate}
+                  onChange={(e) => setInflationRate(Number(e.target.value))}
+                  min={0}
+                  max={100}
+                  step={0.1}
+                />
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </div>
 
         <div className="space-y-8">
           <InvestmentSummary data={investmentData} />
