@@ -1,12 +1,21 @@
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Card } from "@/components/ui/card";
-import { InvestmentDataPoint } from "@/lib/investment-utils";
+import { InvestmentDataPoint, InvestmentStream } from "@/lib/investment-utils";
 
 interface InvestmentChartProps {
   data: InvestmentDataPoint[];
+  streams: InvestmentStream[];
 }
 
-const InvestmentChart = ({ data }: InvestmentChartProps) => {
+const STREAM_COLORS = [
+  { stroke: "#0891B2", fill: "#E0F2FE" }, // cyan
+  { stroke: "#059669", fill: "#DCFCE7" }, // emerald
+  { stroke: "#7C3AED", fill: "#EDE9FE" }, // violet
+  { stroke: "#DB2777", fill: "#FCE7F3" }, // pink
+  { stroke: "#D97706", fill: "#FEF3C7" }, // amber
+];
+
+const InvestmentChart = ({ data, streams }: InvestmentChartProps) => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -28,22 +37,39 @@ const InvestmentChart = ({ data }: InvestmentChartProps) => {
             <Tooltip
               formatter={(value: number, name: string) => [
                 formatCurrency(value),
-                name === "balance" ? "Investment Balance" : "Cost of Living"
+                name === "Total Balance" ? "Total Portfolio" :
+                name === "costOfLiving" ? "Cost of Living" :
+                streams.find(s => s.id === name)?.name || name
               ]}
               labelFormatter={(label) => `Age ${label}`}
             />
+            {/* Individual streams */}
+            {streams.map((stream, index) => (
+              <Area
+                key={stream.id}
+                type="monotone"
+                dataKey={`streams.${stream.id}`}
+                name={stream.id}
+                stroke={STREAM_COLORS[index % STREAM_COLORS.length].stroke}
+                fill={STREAM_COLORS[index % STREAM_COLORS.length].fill}
+                strokeWidth={1}
+                fillOpacity={0.3}
+              />
+            ))}
+            {/* Total balance */}
             <Area
               type="monotone"
-              dataKey="balance"
-              name="Investment Balance"
+              dataKey="totalBalance"
+              name="Total Balance"
               stroke="#0891B2"
               fill="#E0F2FE"
               strokeWidth={2}
             />
+            {/* Cost of living */}
             <Area
               type="monotone"
               dataKey="costOfLiving"
-              name="Cost of Living"
+              name="costOfLiving"
               stroke="#EF4444"
               fill="#FEE2E2"
               strokeWidth={2}
