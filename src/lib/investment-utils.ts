@@ -1,16 +1,6 @@
-export interface InvestmentStream {
-  id: string;
-  name: string;
-  principal: number;
-  monthlyContribution: number;
-  postRetirementContribution: number;
-  interestRate: number;
-}
-
 export interface InvestmentDataPoint {
   age: number;
-  streams: { [key: string]: number };
-  totalBalance: number;
+  balance: number;
   totalContributions: number;
   costOfLiving: number;
 }
@@ -19,61 +9,57 @@ export const calculateInvestmentGrowth = (
   currentAge: number,
   targetAge: number,
   lifeExpectancy: number,
-  streams: InvestmentStream[],
+  principal: number,
+  monthlyContribution: number,
+  postRetirementContribution: number,
+  interestRate: number,
   costOfLiving: number,
   inflationRate: number
 ): InvestmentDataPoint[] => {
+  // Input validation
+  if (currentAge >= targetAge || targetAge >= lifeExpectancy) {
+    // Return initial state if invalid parameters
+    return [{
+      age: currentAge,
+      balance: principal,
+      totalContributions: principal,
+      costOfLiving: costOfLiving
+    }];
+  }
+
+  const yearlyContribution = monthlyContribution * 12;
+  const yearlyPostRetirementContribution = postRetirementContribution * 12;
   const years = lifeExpectancy - currentAge;
   const data: InvestmentDataPoint[] = [];
-  let streamBalances: { [key: string]: number } = {};
-  let streamTotalContributions: { [key: string]: number } = {};
-
-  // Initialize balances and contributions
-  streams.forEach(stream => {
-    streamBalances[stream.id] = stream.principal;
-    streamTotalContributions[stream.id] = stream.principal;
-  });
-
+  let balance = principal;
+  let totalContributions = principal;
   let adjustedCostOfLiving = costOfLiving;
 
   for (let i = 0; i <= years; i++) {
     const currentAge_i = currentAge + i;
-    const isRetired = currentAge_i > targetAge;
-
-    // Calculate total balance before cost of living adjustment
-    const totalBalance = Object.values(streamBalances).reduce((a, b) => a + b, 0);
-    const totalContributions = Object.values(streamTotalContributions).reduce((a, b) => a + b, 0);
-
-    // After retirement, subtract cost of living from total balance proportionally from each stream
-    if (isRetired) {
-      const totalBeforeDeduction = totalBalance;
-      Object.keys(streamBalances).forEach(streamId => {
-        const proportion = streamBalances[streamId] / totalBeforeDeduction;
-        streamBalances[streamId] = Math.max(0, streamBalances[streamId] - (adjustedCostOfLiving * proportion));
-      });
+    
+    // After retirement, subtract cost of living from balance
+    if (currentAge_i > targetAge) {
+      balance = Math.max(0, balance - adjustedCostOfLiving);
     }
 
-    // Record data point
     data.push({
       age: currentAge_i,
-      streams: { ...streamBalances },
-      totalBalance: Math.max(0, Object.values(streamBalances).reduce((a, b) => a + b, 0)),
-      totalContributions,
-      costOfLiving: adjustedCostOfLiving
+      balance: Math.max(0, Math.round(balance)),
+      totalContributions: Math.round(totalContributions),
+      costOfLiving: Math.round(adjustedCostOfLiving)
     });
 
-    // Apply growth and contributions to each stream
-    streams.forEach(stream => {
-      streamBalances[stream.id] = streamBalances[stream.id] * (1 + stream.interestRate / 100);
-      if (currentAge_i <= targetAge) {
-        streamBalances[stream.id] += stream.monthlyContribution * 12;
-        streamTotalContributions[stream.id] += stream.monthlyContribution * 12;
-      } else {
-        streamBalances[stream.id] += stream.postRetirementContribution * 12;
-        streamTotalContributions[stream.id] += stream.postRetirementContribution * 12;
-      }
-    });
-
+    // Apply interest and contributions
+    balance = balance * (1 + interestRate / 100);
+    if (currentAge_i <= targetAge) {
+      balance += yearlyContribution;
+      totalContributions += yearlyContribution;
+    } else {
+      balance += yearlyPostRetirementContribution;
+      totalContributions += yearlyPostRetirementContribution;
+    }
+    
     // Adjust cost of living for inflation
     adjustedCostOfLiving = adjustedCostOfLiving * (1 + inflationRate / 100);
   }
