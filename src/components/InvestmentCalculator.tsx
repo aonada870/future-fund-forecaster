@@ -2,29 +2,58 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { PlusCircle, Trash2 } from "lucide-react";
 import InvestmentChart from "./InvestmentChart";
 import InvestmentSummary from "./InvestmentSummary";
-import { calculateInvestmentGrowth } from "@/lib/investment-utils";
+import { calculateInvestmentGrowth, InvestmentStream } from "@/lib/investment-utils";
 
 export const InvestmentCalculator = () => {
   const [currentAge, setCurrentAge] = useState(30);
   const [targetAge, setTargetAge] = useState(65);
   const [lifeExpectancy, setLifeExpectancy] = useState(85);
-  const [principal, setPrincipal] = useState(10000);
-  const [monthlyContribution, setMonthlyContribution] = useState(500);
-  const [postRetirementContribution, setPostRetirementContribution] = useState(0);
-  const [interestRate, setInterestRate] = useState(7);
   const [costOfLiving, setCostOfLiving] = useState(50000);
   const [inflationRate, setInflationRate] = useState(2.5);
+  const [streams, setStreams] = useState<InvestmentStream[]>([
+    {
+      id: "default",
+      principal: 10000,
+      monthlyContribution: 500,
+      postRetirementContribution: 0,
+      interestRate: 7
+    }
+  ]);
+
+  const addStream = () => {
+    setStreams([
+      ...streams,
+      {
+        id: crypto.randomUUID(),
+        principal: 0,
+        monthlyContribution: 0,
+        postRetirementContribution: 0,
+        interestRate: 7
+      }
+    ]);
+  };
+
+  const removeStream = (id: string) => {
+    if (streams.length > 1) {
+      setStreams(streams.filter(stream => stream.id !== id));
+    }
+  };
+
+  const updateStream = (id: string, field: keyof Omit<InvestmentStream, 'id'>, value: number) => {
+    setStreams(streams.map(stream => 
+      stream.id === id ? { ...stream, [field]: value } : stream
+    ));
+  };
 
   const investmentData = calculateInvestmentGrowth(
     currentAge,
     targetAge,
     lifeExpectancy,
-    principal,
-    monthlyContribution,
-    postRetirementContribution,
-    interestRate,
+    streams,
     costOfLiving,
     inflationRate
   );
@@ -76,51 +105,78 @@ export const InvestmentCalculator = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="principal">Initial Investment ($)</Label>
-                <Input
-                  id="principal"
-                  type="number"
-                  value={principal}
-                  onChange={(e) => setPrincipal(Number(e.target.value))}
-                  min={0}
-                />
-              </div>
+              {streams.map((stream, index) => (
+                <Card key={stream.id} className="p-4 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-semibold">Investment Stream {index + 1}</h3>
+                    {streams.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => removeStream(stream.id)}
+                        className="h-8 w-8"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="monthlyContribution">Monthly Contribution ($)</Label>
-                <Input
-                  id="monthlyContribution"
-                  type="number"
-                  value={monthlyContribution}
-                  onChange={(e) => setMonthlyContribution(Number(e.target.value))}
-                  min={0}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`principal-${stream.id}`}>Initial Investment ($)</Label>
+                    <Input
+                      id={`principal-${stream.id}`}
+                      type="number"
+                      value={stream.principal}
+                      onChange={(e) => updateStream(stream.id, 'principal', Number(e.target.value))}
+                      min={0}
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="postRetirementContribution">Post-Retirement Monthly Contribution ($)</Label>
-                <Input
-                  id="postRetirementContribution"
-                  type="number"
-                  value={postRetirementContribution}
-                  onChange={(e) => setPostRetirementContribution(Number(e.target.value))}
-                  min={0}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`monthlyContribution-${stream.id}`}>Monthly Contribution ($)</Label>
+                    <Input
+                      id={`monthlyContribution-${stream.id}`}
+                      type="number"
+                      value={stream.monthlyContribution}
+                      onChange={(e) => updateStream(stream.id, 'monthlyContribution', Number(e.target.value))}
+                      min={0}
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="interestRate">Annual Interest Rate (%)</Label>
-                <Input
-                  id="interestRate"
-                  type="number"
-                  value={interestRate}
-                  onChange={(e) => setInterestRate(Number(e.target.value))}
-                  min={0}
-                  max={100}
-                  step={0.1}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`postRetirementContribution-${stream.id}`}>Post-Retirement Monthly Contribution ($)</Label>
+                    <Input
+                      id={`postRetirementContribution-${stream.id}`}
+                      type="number"
+                      value={stream.postRetirementContribution}
+                      onChange={(e) => updateStream(stream.id, 'postRetirementContribution', Number(e.target.value))}
+                      min={0}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`interestRate-${stream.id}`}>Annual Interest Rate (%)</Label>
+                    <Input
+                      id={`interestRate-${stream.id}`}
+                      type="number"
+                      value={stream.interestRate}
+                      onChange={(e) => updateStream(stream.id, 'interestRate', Number(e.target.value))}
+                      min={0}
+                      max={100}
+                      step={0.1}
+                    />
+                  </div>
+                </Card>
+              ))}
+
+              <Button
+                onClick={addStream}
+                variant="outline"
+                className="w-full"
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Investment Stream
+              </Button>
             </div>
           </Card>
 
