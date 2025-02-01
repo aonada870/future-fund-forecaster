@@ -5,19 +5,14 @@ export interface InvestmentDataPoint {
   costOfLiving: number;
 }
 
-export interface InvestmentStream {
-  id: string;
-  principal: number;
-  monthlyContribution: number;
-  postRetirementContribution: number;
-  interestRate: number;
-}
-
 export const calculateInvestmentGrowth = (
   currentAge: number,
   targetAge: number,
   lifeExpectancy: number,
-  streams: InvestmentStream[],
+  principal: number,
+  monthlyContribution: number,
+  postRetirementContribution: number,
+  interestRate: number,
   costOfLiving: number,
   inflationRate: number
 ): InvestmentDataPoint[] => {
@@ -25,57 +20,58 @@ export const calculateInvestmentGrowth = (
   const validCurrentAge = Math.max(0, currentAge);
   const validTargetAge = Math.max(validCurrentAge + 1, targetAge);
   const validLifeExpectancy = Math.max(validTargetAge + 1, lifeExpectancy);
-  const validInflationRate = Math.max(0, inflationRate);
+  const validPrincipal = Math.max(0, principal);
+  const validMonthlyContribution = Math.max(0, monthlyContribution);
+  const validPostRetirementContribution = Math.max(0, postRetirementContribution);
+  const validInterestRate = Math.max(0, interestRate);
   const validCostOfLiving = Math.max(0, costOfLiving);
+  const validInflationRate = Math.max(0, inflationRate);
 
+  const yearlyContribution = validMonthlyContribution * 12;
+  const yearlyPostRetirementContribution = validPostRetirementContribution * 12;
   const years = validLifeExpectancy - validCurrentAge;
   const data: InvestmentDataPoint[] = [];
+  let balance = validPrincipal;
+  let totalContributions = validPrincipal;
   let adjustedCostOfLiving = validCostOfLiving;
-
-  // Initialize total balance and contributions
-  let totalBalance = streams.reduce((sum, stream) => sum + Math.max(0, stream.principal), 0);
-  let totalContributions = totalBalance;
 
   for (let i = 0; i <= years; i++) {
     const currentAge_i = validCurrentAge + i;
     
-    // After retirement, subtract cost of living from total balance
+    // After retirement, subtract cost of living from balance
     if (currentAge_i > validTargetAge) {
-      totalBalance = Math.max(0, totalBalance - adjustedCostOfLiving);
+      balance = Math.max(0, balance - adjustedCostOfLiving);
     }
 
     data.push({
       age: currentAge_i,
-      balance: Math.max(0, Math.round(totalBalance)),
+      balance: Math.max(0, Math.round(balance)),
       totalContributions: Math.round(totalContributions),
       costOfLiving: Math.round(adjustedCostOfLiving)
     });
 
-    // Calculate growth and contributions for each stream
-    streams.forEach(stream => {
-      const validInterestRate = Math.max(0, stream.interestRate);
-      const validMonthlyContribution = Math.max(0, stream.monthlyContribution);
-      const validPostRetirementContribution = Math.max(0, stream.postRetirementContribution);
-
-      // Apply interest to this stream's portion
-      const streamBalance = totalBalance * (stream.principal / totalBalance);
-      const interestGrowth = streamBalance * (validInterestRate / 100);
-      totalBalance += interestGrowth;
-
-      // Add contributions based on retirement status
-      if (currentAge_i <= validTargetAge) {
-        const yearlyContribution = validMonthlyContribution * 12;
-        totalBalance += yearlyContribution;
-        totalContributions += yearlyContribution;
-      } else {
-        const yearlyPostRetirementContribution = validPostRetirementContribution * 12;
-        totalBalance += yearlyPostRetirementContribution;
-        totalContributions += yearlyPostRetirementContribution;
-      }
-    });
+    // Apply interest and contributions
+    balance = balance * (1 + validInterestRate / 100);
+    if (currentAge_i <= validTargetAge) {
+      balance += yearlyContribution;
+      totalContributions += yearlyContribution;
+    } else {
+      balance += yearlyPostRetirementContribution;
+      totalContributions += yearlyPostRetirementContribution;
+    }
     
     // Adjust cost of living for inflation
     adjustedCostOfLiving = adjustedCostOfLiving * (1 + validInflationRate / 100);
+  }
+
+  // Ensure we always return at least one data point
+  if (data.length === 0) {
+    data.push({
+      age: validCurrentAge,
+      balance: validPrincipal,
+      totalContributions: validPrincipal,
+      costOfLiving: validCostOfLiving
+    });
   }
 
   return data;
