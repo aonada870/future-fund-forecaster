@@ -2,9 +2,12 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import InvestmentChart from "./InvestmentChart";
 import InvestmentSummary from "./InvestmentSummary";
+import ContributionAnalysis from "./ContributionAnalysis";
 import { calculateInvestmentGrowth } from "@/lib/investment-utils";
+import { calculateRequiredContribution } from "@/lib/contribution-utils";
 
 export const InvestmentCalculator = () => {
   const [currentAge, setCurrentAge] = useState(30);
@@ -17,6 +20,13 @@ export const InvestmentCalculator = () => {
   const [costOfLiving, setCostOfLiving] = useState(50000);
   const [inflationRate, setInflationRate] = useState(2.5);
   const [taxRate, setTaxRate] = useState(15);
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [requiredContribution, setRequiredContribution] = useState<{
+    requiredMonthlyContribution: number;
+    currentContribution: number;
+    percentageDifference: number;
+    yearsUntilDepletion: number;
+  } | null>(null);
 
   const investmentData = calculateInvestmentGrowth(
     currentAge,
@@ -30,6 +40,25 @@ export const InvestmentCalculator = () => {
     inflationRate,
     taxRate
   );
+
+  const handleCalculateRequired = () => {
+    const result = calculateRequiredContribution(
+      currentAge,
+      targetAge,
+      lifeExpectancy,
+      costOfLiving,
+      inflationRate,
+      interestRate,
+      taxRate,
+      principal
+    );
+    
+    setRequiredContribution({
+      ...result,
+      currentContribution: monthlyContribution
+    });
+    setShowAnalysis(true);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
@@ -133,6 +162,14 @@ export const InvestmentCalculator = () => {
               />
             </div>
 
+            <Button
+              onClick={handleCalculateRequired}
+              className="w-full mt-4"
+              variant="secondary"
+            >
+              Calculate Required Contribution
+            </Button>
+
             <div className="space-y-2">
               <Label htmlFor="inflationRate">Annual Inflation Rate (%)</Label>
               <Input
@@ -163,6 +200,13 @@ export const InvestmentCalculator = () => {
 
         <div className="space-y-8">
           <InvestmentSummary data={investmentData} />
+          {showAnalysis && requiredContribution && (
+            <ContributionAnalysis
+              requiredMonthlyContribution={requiredContribution.requiredMonthlyContribution}
+              currentContribution={requiredContribution.currentContribution}
+              yearsUntilDepletion={requiredContribution.yearsUntilDepletion}
+            />
+          )}
           <InvestmentChart data={investmentData} />
         </div>
       </div>
