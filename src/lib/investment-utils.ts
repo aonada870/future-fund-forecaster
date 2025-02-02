@@ -3,6 +3,7 @@ export interface InvestmentDataPoint {
   balance: number;
   totalContributions: number;
   costOfLiving: number;
+  taxPaid?: number;
 }
 
 export const calculateInvestmentGrowth = (
@@ -14,7 +15,8 @@ export const calculateInvestmentGrowth = (
   postRetirementContribution: number,
   interestRate: number,
   costOfLiving: number,
-  inflationRate: number
+  inflationRate: number,
+  taxRate: number
 ): InvestmentDataPoint[] => {
   // Input validation
   if (currentAge >= targetAge || targetAge >= lifeExpectancy) {
@@ -23,7 +25,8 @@ export const calculateInvestmentGrowth = (
       age: currentAge,
       balance: principal,
       totalContributions: principal,
-      costOfLiving: costOfLiving
+      costOfLiving: costOfLiving,
+      taxPaid: 0
     }];
   }
 
@@ -37,17 +40,22 @@ export const calculateInvestmentGrowth = (
 
   for (let i = 0; i <= years; i++) {
     const currentAge_i = currentAge + i;
+    let taxPaid = 0;
     
-    // After retirement, subtract cost of living from balance
+    // After retirement, subtract cost of living and calculate tax
     if (currentAge_i > targetAge) {
-      balance = Math.max(0, balance - adjustedCostOfLiving);
+      const withdrawalAmount = adjustedCostOfLiving;
+      taxPaid = withdrawalAmount * (taxRate / 100);
+      const totalWithdrawal = withdrawalAmount + taxPaid;
+      balance = Math.max(0, balance - totalWithdrawal);
     }
 
     data.push({
       age: currentAge_i,
       balance: Math.max(0, Math.round(balance)),
       totalContributions: Math.round(totalContributions),
-      costOfLiving: Math.round(adjustedCostOfLiving)
+      costOfLiving: Math.round(adjustedCostOfLiving),
+      taxPaid: Math.round(taxPaid)
     });
 
     // Apply interest and contributions

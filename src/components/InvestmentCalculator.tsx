@@ -16,6 +16,7 @@ export const InvestmentCalculator = () => {
   const [interestRate, setInterestRate] = useState(7);
   const [costOfLiving, setCostOfLiving] = useState(50000);
   const [inflationRate, setInflationRate] = useState(2.5);
+  const [taxRate, setTaxRate] = useState(15);
 
   const investmentData = calculateInvestmentGrowth(
     currentAge,
@@ -26,7 +27,8 @@ export const InvestmentCalculator = () => {
     postRetirementContribution,
     interestRate,
     costOfLiving,
-    inflationRate
+    inflationRate,
+    taxRate
   );
 
   return (
@@ -138,6 +140,19 @@ export const InvestmentCalculator = () => {
                 type="number"
                 value={inflationRate}
                 onChange={(e) => setInflationRate(Number(e.target.value))}
+                min={0}
+                max={100}
+                step={0.1}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="taxRate">Tax Rate on Withdrawals (%)</Label>
+              <Input
+                id="taxRate"
+                type="number"
+                value={taxRate}
+                onChange={(e) => setTaxRate(Number(e.target.value))}
                 min={0}
                 max={100}
                 step={0.1}

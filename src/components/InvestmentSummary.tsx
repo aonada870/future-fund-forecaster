@@ -19,6 +19,7 @@ const InvestmentSummary = ({ data }: InvestmentSummaryProps) => {
   const totalContributions = data[data.length - 1].totalContributions;
   const totalInterest = finalBalance - totalContributions;
   const finalCostOfLiving = data[data.length - 1].costOfLiving;
+  const finalTaxPaid = data[data.length - 1].taxPaid || 0;
 
   return (
     <Card className="p-6">
@@ -38,9 +39,15 @@ const InvestmentSummary = ({ data }: InvestmentSummaryProps) => {
             <p className="text-lg font-semibold">{formatCurrency(totalInterest)}</p>
           </div>
         </div>
-        <div>
-          <p className="text-sm text-gray-500">Final Annual Cost of Living</p>
-          <p className="text-lg font-semibold text-red-500">{formatCurrency(finalCostOfLiving)}</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <p className="text-sm text-gray-500">Annual Cost of Living</p>
+            <p className="text-lg font-semibold text-red-500">{formatCurrency(finalCostOfLiving)}</p>
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Annual Tax on Withdrawals</p>
+            <p className="text-lg font-semibold text-red-500">{formatCurrency(finalTaxPaid)}</p>
+          </div>
         </div>
       </div>
     </Card>
