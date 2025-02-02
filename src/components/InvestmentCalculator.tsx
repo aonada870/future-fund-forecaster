@@ -7,15 +7,15 @@ import InvestmentSummary from "./InvestmentSummary";
 import { calculateInvestmentGrowth } from "@/lib/investment-utils";
 
 export const InvestmentCalculator = () => {
-  const [currentAge, setCurrentAge] = useState(30);
-  const [targetAge, setTargetAge] = useState(65);
-  const [lifeExpectancy, setLifeExpectancy] = useState(85);
-  const [principal, setPrincipal] = useState(10000);
-  const [monthlyContribution, setMonthlyContribution] = useState(500);
+  const [currentAge, setCurrentAge] = useState(41);
+  const [targetAge, setTargetAge] = useState(55);
+  const [lifeExpectancy, setLifeExpectancy] = useState(95);
+  const [principal, setPrincipal] = useState(210000);
+  const [monthlyContribution, setMonthlyContribution] = useState(2600);
   const [postRetirementContribution, setPostRetirementContribution] = useState(0);
   const [interestRate, setInterestRate] = useState(7);
-  const [costOfLiving, setCostOfLiving] = useState(50000);
-  const [inflationRate, setInflationRate] = useState(2.5);
+  const [costOfLiving, setCostOfLiving] = useState(57000);
+  const [inflationRate, setInflationRate] = useState(3);
   const [taxRate, setTaxRate] = useState(15);
 
   const investmentData = calculateInvestmentGrowth(
