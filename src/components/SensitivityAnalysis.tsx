@@ -1,5 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 interface SensitivityAnalysisProps {
   sensitivityData: {
@@ -27,6 +26,18 @@ const SensitivityAnalysis = ({ sensitivityData }: SensitivityAnalysisProps) => {
       default: return '#0891B2';
     }
   };
+
+  // If sensitivityData is undefined or empty, show a message
+  if (!sensitivityData || sensitivityData.length === 0) {
+    return (
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Contribution Sensitivity Analysis</h3>
+        <p className="text-sm text-gray-500">
+          No sensitivity data available. Please calculate required contribution first.
+        </p>
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6">
