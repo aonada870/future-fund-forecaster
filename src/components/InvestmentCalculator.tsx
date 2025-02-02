@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import InvestmentChart from "./InvestmentChart";
 import InvestmentSummary from "./InvestmentSummary";
 import ContributionAnalysis from "./ContributionAnalysis";
+import SensitivityAnalysis from "./SensitivityAnalysis";
 import { calculateInvestmentGrowth } from "@/lib/investment-utils";
 import { calculateRequiredContribution } from "@/lib/contribution-utils";
 
@@ -26,6 +27,11 @@ export const InvestmentCalculator = () => {
     currentContribution: number;
     percentageDifference: number;
     yearsUntilDepletion: number;
+    sensitivityAnalysis: {
+      contribution: number;
+      yearsUntilDepletion: number;
+      scenario: string;
+    }[];
   } | null>(null);
 
   const investmentData = calculateInvestmentGrowth(
@@ -201,11 +207,16 @@ export const InvestmentCalculator = () => {
         <div className="space-y-8">
           <InvestmentSummary data={investmentData} />
           {showAnalysis && requiredContribution && (
-            <ContributionAnalysis
-              requiredMonthlyContribution={requiredContribution.requiredMonthlyContribution}
-              currentContribution={requiredContribution.currentContribution}
-              yearsUntilDepletion={requiredContribution.yearsUntilDepletion}
-            />
+            <>
+              <ContributionAnalysis
+                requiredMonthlyContribution={requiredContribution.requiredMonthlyContribution}
+                currentContribution={requiredContribution.currentContribution}
+                yearsUntilDepletion={requiredContribution.yearsUntilDepletion}
+              />
+              <SensitivityAnalysis
+                sensitivityData={requiredContribution.sensitivityAnalysis}
+              />
+            </>
           )}
           <InvestmentChart data={investmentData} />
         </div>
