@@ -6,19 +6,6 @@ interface InvestmentChartProps {
   data: InvestmentDataPoint[];
 }
 
-const STREAM_COLORS = [
-  "#0891B2", // cyan-600
-  "#0D9488", // teal-600
-  "#0284C7", // sky-600
-  "#2563EB", // blue-600
-  "#4F46E5", // indigo-600
-  "#7C3AED", // violet-600
-  "#9333EA", // purple-600
-  "#C026D3", // fuchsia-600
-  "#DB2777", // pink-600
-  "#E11D48", // rose-600
-];
-
 const InvestmentChart = ({ data }: InvestmentChartProps) => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -28,9 +15,6 @@ const InvestmentChart = ({ data }: InvestmentChartProps) => {
       maximumFractionDigits: 0,
     }).format(value);
   };
-
-  // Get all stream IDs from the first data point
-  const streamIds = Object.keys(data[0]?.streams || {});
 
   return (
     <Card className="p-6">
@@ -44,30 +28,24 @@ const InvestmentChart = ({ data }: InvestmentChartProps) => {
             <Tooltip
               formatter={(value: number, name: string) => [
                 formatCurrency(value),
-                name === "costOfLiving" ? "Cost of Living" : name
+                name === "balance" ? "Investment Balance" : "Cost of Living"
               ]}
               labelFormatter={(label) => `Age ${label}`}
             />
-            {streamIds.map((streamId, index) => (
-              <Area
-                key={streamId}
-                type="monotone"
-                dataKey={`streams.${streamId}.balance`}
-                name={streamId}
-                stroke={STREAM_COLORS[index % STREAM_COLORS.length]}
-                fill={STREAM_COLORS[index % STREAM_COLORS.length]}
-                fillOpacity={0.1}
-                strokeWidth={2}
-                stackId="1"
-              />
-            ))}
+            <Area
+              type="monotone"
+              dataKey="balance"
+              name="Investment Balance"
+              stroke="#0891B2"
+              fill="#E0F2FE"
+              strokeWidth={2}
+            />
             <Area
               type="monotone"
               dataKey="costOfLiving"
               name="Cost of Living"
               stroke="#EF4444"
               fill="#FEE2E2"
-              fillOpacity={0.1}
               strokeWidth={2}
             />
           </AreaChart>

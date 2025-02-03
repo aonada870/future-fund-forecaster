@@ -15,12 +15,11 @@ const InvestmentSummary = ({ data }: InvestmentSummaryProps) => {
     }).format(value);
   };
 
-  const finalData = data[data.length - 1];
-  const finalBalance = finalData.totalBalance;
-  const totalContributions = finalData.totalContributions;
+  const finalBalance = data[data.length - 1].balance;
+  const totalContributions = data[data.length - 1].totalContributions;
   const totalInterest = finalBalance - totalContributions;
-  const finalCostOfLiving = finalData.costOfLiving;
-  const finalTaxPaid = finalData.taxPaid || 0;
+  const finalCostOfLiving = data[data.length - 1].costOfLiving;
+  const finalTaxPaid = data[data.length - 1].taxPaid || 0;
 
   return (
     <Card className="p-6">
@@ -48,17 +47,6 @@ const InvestmentSummary = ({ data }: InvestmentSummaryProps) => {
           <div>
             <p className="text-sm text-gray-500">Annual Tax on Withdrawals</p>
             <p className="text-lg font-semibold text-red-500">{formatCurrency(finalTaxPaid)}</p>
-          </div>
-        </div>
-        <div className="space-y-2">
-          <p className="text-sm text-gray-500">Investment Streams</p>
-          <div className="space-y-2">
-            {Object.entries(finalData.streams).map(([id, stream]) => (
-              <div key={id} className="flex justify-between items-center">
-                <span className="text-sm">{id}</span>
-                <span className="text-sm font-semibold">{formatCurrency(stream.balance)}</span>
-              </div>
-            ))}
           </div>
         </div>
       </div>
