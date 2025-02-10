@@ -1,3 +1,4 @@
+
 export interface InvestmentDataPoint {
   age: number;
   balance: number;
@@ -19,7 +20,6 @@ export const calculateInvestmentGrowth = (
 ): InvestmentDataPoint[] => {
   // Input validation
   if (currentAge >= targetAge || targetAge >= lifeExpectancy) {
-    // Return initial state if invalid parameters
     return [{
       age: currentAge,
       balance: principal,
@@ -28,7 +28,8 @@ export const calculateInvestmentGrowth = (
     }];
   }
 
-  const yearlyContribution = monthlyContribution * 12;
+  const periodsPerYear = 12; // Monthly contributions
+  const monthlyRate = Math.pow(1 + interestRate / 100, 1 / periodsPerYear) - 1;
   const yearlyPostRetirementContribution = postRetirementContribution * 12;
   const years = lifeExpectancy - currentAge;
   const data: InvestmentDataPoint[] = [];
@@ -39,11 +40,6 @@ export const calculateInvestmentGrowth = (
   for (let i = 0; i <= years; i++) {
     const currentAge_i = currentAge + i;
     
-    // After retirement, subtract cost of living
-    if (currentAge_i > targetAge) {
-      balance = Math.max(0, balance - adjustedCostOfLiving);
-    }
-
     data.push({
       age: currentAge_i,
       balance: Math.max(0, Math.round(balance)),
@@ -51,17 +47,27 @@ export const calculateInvestmentGrowth = (
       costOfLiving: Math.round(adjustedCostOfLiving)
     });
 
-    // Apply interest and contributions
-    balance = balance * (1 + interestRate / 100);
+    // After retirement, subtract cost of living first
+    if (currentAge_i > targetAge) {
+      balance = Math.max(0, balance - adjustedCostOfLiving);
+    }
+
+    // Calculate compound interest with periodic contributions for the next year
     if (currentAge_i <= targetAge) {
-      balance += yearlyContribution;
-      totalContributions += yearlyContribution;
+      // Pre-retirement: Apply monthly compounding with monthly contributions
+      for (let month = 0; month < periodsPerYear; month++) {
+        balance = balance * (1 + monthlyRate) + monthlyContribution;
+        totalContributions += monthlyContribution;
+      }
     } else {
-      balance += yearlyPostRetirementContribution;
-      totalContributions += yearlyPostRetirementContribution;
+      // Post-retirement: Still compound monthly but with post-retirement contributions
+      for (let month = 0; month < periodsPerYear; month++) {
+        balance = balance * (1 + monthlyRate) + postRetirementContribution;
+        totalContributions += postRetirementContribution;
+      }
     }
     
-    // Adjust cost of living for inflation
+    // Adjust cost of living for inflation (annually)
     adjustedCostOfLiving = adjustedCostOfLiving * (1 + inflationRate / 100);
   }
 
