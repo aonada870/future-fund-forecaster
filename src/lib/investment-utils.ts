@@ -28,47 +28,53 @@ export const calculateInvestmentGrowth = (
     }];
   }
 
-  const periodsPerYear = 12; // Monthly contributions
-  const monthlyRate = Math.pow(1 + interestRate / 100, 1 / periodsPerYear) - 1;
-  const yearlyPostRetirementContribution = postRetirementContribution * 12;
-  const years = lifeExpectancy - currentAge;
   const data: InvestmentDataPoint[] = [];
-  let balance = principal;
+  const n = 12; // Monthly compounding
+  const r = interestRate / 100; // Convert percentage to decimal
+  const baseRate = 1 + r/n; // Cache (1 + r/n)
+
+  let currentBalance = principal;
   let totalContributions = principal;
   let adjustedCostOfLiving = costOfLiving;
 
-  for (let i = 0; i <= years; i++) {
-    const currentAge_i = currentAge + i;
-    
+  // Calculate for each year from current age to life expectancy
+  for (let age = currentAge; age <= lifeExpectancy; age++) {
+    // Store current year's data
     data.push({
-      age: currentAge_i,
-      balance: Math.max(0, Math.round(balance)),
+      age,
+      balance: Math.max(0, Math.round(currentBalance)),
       totalContributions: Math.round(totalContributions),
       costOfLiving: Math.round(adjustedCostOfLiving)
     });
 
-    // After retirement, subtract cost of living first
-    if (currentAge_i > targetAge) {
-      balance = Math.max(0, balance - adjustedCostOfLiving);
+    // If we've reached life expectancy, no need to calculate further
+    if (age === lifeExpectancy) break;
+
+    const isRetired = age >= targetAge;
+    const contribution = isRetired ? postRetirementContribution : monthlyContribution;
+    
+    // Calculate years from current point
+    const t = 1; // We're calculating one year at a time
+
+    // Calculate Future Value using the formula
+    // FV = P * (1 + r/n)^(n*t) + (C * ((1 + r/n)^(n*t) - 1) / (r/n))
+    const power = Math.pow(baseRate, n * t);
+    const futureValue = currentBalance * power + 
+                       (contribution * (power - 1) / (r/n));
+
+    // Update running totals
+    if (isRetired) {
+      // Subtract cost of living first
+      currentBalance = Math.max(0, futureValue - adjustedCostOfLiving);
+      // Add post-retirement contributions to total
+      totalContributions += postRetirementContribution * 12;
+    } else {
+      currentBalance = futureValue;
+      totalContributions += monthlyContribution * 12;
     }
 
-    // Calculate compound interest with periodic contributions for the next year
-    if (currentAge_i <= targetAge) {
-      // Pre-retirement: Apply monthly compounding with monthly contributions
-      for (let month = 0; month < periodsPerYear; month++) {
-        balance = balance * (1 + monthlyRate) + monthlyContribution;
-        totalContributions += monthlyContribution;
-      }
-    } else {
-      // Post-retirement: Still compound monthly but with post-retirement contributions
-      for (let month = 0; month < periodsPerYear; month++) {
-        balance = balance * (1 + monthlyRate) + postRetirementContribution;
-        totalContributions += postRetirementContribution;
-      }
-    }
-    
-    // Adjust cost of living for inflation (annually)
-    adjustedCostOfLiving = adjustedCostOfLiving * (1 + inflationRate / 100);
+    // Adjust cost of living for inflation
+    adjustedCostOfLiving *= (1 + inflationRate / 100);
   }
 
   return data;
