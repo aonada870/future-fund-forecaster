@@ -1,77 +1,103 @@
 
+import { ContributionFrequency, InvestmentStream } from "./types";
+
 export interface InvestmentDataPoint {
   age: number;
-  balance: number;
+  streams: { [key: string]: number };
+  combined: number;
   totalContributions: number;
   costOfLiving: number;
 }
+
+const getAnnualContribution = (amount: number, frequency: ContributionFrequency): number => {
+  const frequencyMultipliers: { [key in ContributionFrequency]: number } = {
+    weekly: 52,
+    fortnightly: 26,
+    monthly: 12,
+    quarterly: 4,
+    yearly: 1
+  };
+  return amount * frequencyMultipliers[frequency];
+};
 
 export const calculateInvestmentGrowth = (
   currentAge: number,
   targetAge: number,
   lifeExpectancy: number,
-  principal: number,
-  monthlyContribution: number,
-  postRetirementContribution: number,
-  interestRate: number,
+  streams: InvestmentStream[],
   costOfLiving: number,
   inflationRate: number,
-  taxRate: number // Keeping parameter for backward compatibility
 ): InvestmentDataPoint[] => {
-  // Input validation
   if (currentAge >= targetAge || targetAge >= lifeExpectancy) {
     return [{
       age: currentAge,
-      balance: principal,
-      totalContributions: principal,
+      streams: {},
+      combined: 0,
+      totalContributions: 0,
       costOfLiving: costOfLiving
     }];
   }
 
   const data: InvestmentDataPoint[] = [];
   const n = 12; // Monthly compounding
-  const r = interestRate / 100; // Convert percentage to decimal
-  const baseRate = 1 + r/n; // Cache (1 + r/n)
 
-  let currentBalance = principal;
-  let totalContributions = principal;
+  // Initialize tracking variables for each stream
+  let streamBalances: { [key: string]: number } = {};
+  let streamContributions: { [key: string]: number } = {};
+  
+  // Initialize starting values
+  streams.forEach(stream => {
+    streamBalances[stream.id] = stream.principal;
+    streamContributions[stream.id] = stream.principal;
+  });
+
   let adjustedCostOfLiving = costOfLiving;
 
-  // Calculate for each year from current age to life expectancy
+  // Calculate for each year
   for (let age = currentAge; age <= lifeExpectancy; age++) {
+    const isRetired = age >= targetAge;
+    
+    // Calculate combined values
+    const combinedBalance = Object.values(streamBalances).reduce((sum, val) => sum + val, 0);
+    const totalContributions = Object.values(streamContributions).reduce((sum, val) => sum + val, 0);
+
     // Store current year's data
     data.push({
       age,
-      balance: Math.max(0, Math.round(currentBalance)),
+      streams: { ...streamBalances },
+      combined: Math.round(combinedBalance),
       totalContributions: Math.round(totalContributions),
       costOfLiving: Math.round(adjustedCostOfLiving)
     });
 
-    // If we've reached life expectancy, no need to calculate further
     if (age === lifeExpectancy) break;
 
-    const isRetired = age >= targetAge;
-    const contribution = isRetired ? postRetirementContribution : monthlyContribution;
-    
-    // Calculate years from current point
-    const t = 1; // We're calculating one year at a time
+    // Calculate next year's values for each stream
+    streams.forEach(stream => {
+      const r = stream.interestRate / 100;
+      const baseRate = 1 + r/n;
+      
+      const contribution = isRetired 
+        ? getAnnualContribution(stream.postRetirementAmount, stream.postRetirementFrequency) / 12
+        : getAnnualContribution(stream.contributionAmount, stream.contributionFrequency) / 12;
 
-    // Calculate Future Value using the formula
-    // FV = P * (1 + r/n)^(n*t) + (C * ((1 + r/n)^(n*t) - 1) / (r/n))
-    const power = Math.pow(baseRate, n * t);
-    const futureValue = currentBalance * power + 
-                       (contribution * (power - 1) / (r/n));
+      const t = 1; // One year at a time
+      const power = Math.pow(baseRate, n * t);
+      const futureValue = streamBalances[stream.id] * power + 
+                         (contribution * (power - 1) / (r/n));
 
-    // Update running totals
-    if (isRetired) {
-      // Subtract cost of living first
-      currentBalance = Math.max(0, futureValue - adjustedCostOfLiving);
-      // Add post-retirement contributions to total
-      totalContributions += postRetirementContribution * 12;
-    } else {
-      currentBalance = futureValue;
-      totalContributions += monthlyContribution * 12;
-    }
+      if (isRetired) {
+        // Calculate proportion of cost of living to withdraw from this stream
+        const proportion = streamBalances[stream.id] / combinedBalance;
+        const withdrawal = adjustedCostOfLiving * proportion;
+        
+        streamBalances[stream.id] = Math.max(0, futureValue - withdrawal);
+        streamContributions[stream.id] += contribution * 12;
+      } else {
+        streamBalances[stream.id] = futureValue;
+        streamContributions[stream.id] += contribution * 12;
+      }
+    });
 
     // Adjust cost of living for inflation
     adjustedCostOfLiving *= (1 + inflationRate / 100);

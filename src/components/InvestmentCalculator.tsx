@@ -3,32 +3,66 @@ import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import InvestmentChart from "./InvestmentChart";
 import InvestmentSummary from "./InvestmentSummary";
 import { calculateInvestmentGrowth } from "@/lib/investment-utils";
+import { ContributionFrequency, InvestmentStream } from "@/lib/types";
+import { PlusCircle, Trash2 } from "lucide-react";
+
+const frequencyOptions: ContributionFrequency[] = ['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'];
 
 export const InvestmentCalculator = () => {
   const [currentAge, setCurrentAge] = useState(30);
   const [targetAge, setTargetAge] = useState(65);
   const [lifeExpectancy, setLifeExpectancy] = useState(105);
-  const [principal, setPrincipal] = useState(100000);
-  const [monthlyContribution, setMonthlyContribution] = useState(1000);
-  const [postRetirementContribution, setPostRetirementContribution] = useState(0);
-  const [interestRate, setInterestRate] = useState(7);
   const [costOfLiving, setCostOfLiving] = useState(50000);
   const [inflationRate, setInflationRate] = useState(3);
+  const [streams, setStreams] = useState<InvestmentStream[]>([{
+    id: '1',
+    name: 'Investment Stream 1',
+    principal: 100000,
+    contributionAmount: 1000,
+    contributionFrequency: 'monthly',
+    postRetirementAmount: 0,
+    postRetirementFrequency: 'monthly',
+    interestRate: 7
+  }]);
+
+  const addStream = () => {
+    const newStream: InvestmentStream = {
+      id: `${streams.length + 1}`,
+      name: `Investment Stream ${streams.length + 1}`,
+      principal: 0,
+      contributionAmount: 0,
+      contributionFrequency: 'monthly',
+      postRetirementAmount: 0,
+      postRetirementFrequency: 'monthly',
+      interestRate: 7
+    };
+    setStreams([...streams, newStream]);
+  };
+
+  const removeStream = (id: string) => {
+    if (streams.length > 1) {
+      setStreams(streams.filter(stream => stream.id !== id));
+    }
+  };
+
+  const updateStream = (id: string, updates: Partial<InvestmentStream>) => {
+    setStreams(streams.map(stream => 
+      stream.id === id ? { ...stream, ...updates } : stream
+    ));
+  };
 
   const investmentData = calculateInvestmentGrowth(
     currentAge,
     targetAge,
     lifeExpectancy,
-    principal,
-    monthlyContribution,
-    postRetirementContribution,
-    interestRate,
+    streams,
     costOfLiving,
-    inflationRate,
-    0
+    inflationRate
   );
 
   return (
@@ -39,8 +73,9 @@ export const InvestmentCalculator = () => {
       
       <div className="grid gap-8 md:grid-cols-2">
         <div className="space-y-6">
-          {/* First Card: Age & Cost of Living */}
+          {/* General Details Card */}
           <Card className="p-6">
+            <h2 className="text-xl font-semibold mb-4">General Details</h2>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="currentAge">Current Age</Label>
@@ -104,61 +139,138 @@ export const InvestmentCalculator = () => {
             </div>
           </Card>
 
-          {/* Second Card: Investment Details */}
-          <Card className="p-6">
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="principal">Initial Investment ($)</Label>
-                <Input
-                  id="principal"
-                  type="number"
-                  value={principal}
-                  onChange={(e) => setPrincipal(Number(e.target.value))}
-                  min={0}
-                />
+          {/* Investment Streams */}
+          {streams.map((stream) => (
+            <Card key={stream.id} className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">{stream.name}</h2>
+                {streams.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeStream(stream.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="monthlyContribution">Monthly Contribution ($)</Label>
-                <Input
-                  id="monthlyContribution"
-                  type="number"
-                  value={monthlyContribution}
-                  onChange={(e) => setMonthlyContribution(Number(e.target.value))}
-                  min={0}
-                />
-              </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor={`${stream.id}-name`}>Stream Name</Label>
+                  <Input
+                    id={`${stream.id}-name`}
+                    value={stream.name}
+                    onChange={(e) => updateStream(stream.id, { name: e.target.value })}
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="postRetirementContribution">Post-Retirement Monthly Contribution ($)</Label>
-                <Input
-                  id="postRetirementContribution"
-                  type="number"
-                  value={postRetirementContribution}
-                  onChange={(e) => setPostRetirementContribution(Number(e.target.value))}
-                  min={0}
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${stream.id}-principal`}>Initial Investment ($)</Label>
+                  <Input
+                    id={`${stream.id}-principal`}
+                    type="number"
+                    value={stream.principal}
+                    onChange={(e) => updateStream(stream.id, { principal: Number(e.target.value) })}
+                    min={0}
+                  />
+                </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="interestRate">Annual Interest Rate (%)</Label>
-                <Input
-                  id="interestRate"
-                  type="number"
-                  value={interestRate}
-                  onChange={(e) => setInterestRate(Number(e.target.value))}
-                  min={0}
-                  max={100}
-                  step={0.1}
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`${stream.id}-contribution`}>Contribution Amount ($)</Label>
+                    <Input
+                      id={`${stream.id}-contribution`}
+                      type="number"
+                      value={stream.contributionAmount}
+                      onChange={(e) => updateStream(stream.id, { contributionAmount: Number(e.target.value) })}
+                      min={0}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`${stream.id}-frequency`}>Frequency</Label>
+                    <Select
+                      value={stream.contributionFrequency}
+                      onValueChange={(value: ContributionFrequency) => 
+                        updateStream(stream.id, { contributionFrequency: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {frequencyOptions.map((freq) => (
+                          <SelectItem key={freq} value={freq}>
+                            {freq.charAt(0).toUpperCase() + freq.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor={`${stream.id}-post-retirement`}>Post-Retirement Amount ($)</Label>
+                    <Input
+                      id={`${stream.id}-post-retirement`}
+                      type="number"
+                      value={stream.postRetirementAmount}
+                      onChange={(e) => updateStream(stream.id, { postRetirementAmount: Number(e.target.value) })}
+                      min={0}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`${stream.id}-post-retirement-frequency`}>Frequency</Label>
+                    <Select
+                      value={stream.postRetirementFrequency}
+                      onValueChange={(value: ContributionFrequency) => 
+                        updateStream(stream.id, { postRetirementFrequency: value })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {frequencyOptions.map((freq) => (
+                          <SelectItem key={freq} value={freq}>
+                            {freq.charAt(0).toUpperCase() + freq.slice(1)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`${stream.id}-interest`}>Annual Interest Rate (%)</Label>
+                  <Input
+                    id={`${stream.id}-interest`}
+                    type="number"
+                    value={stream.interestRate}
+                    onChange={(e) => updateStream(stream.id, { interestRate: Number(e.target.value) })}
+                    min={0}
+                    max={100}
+                    step={0.1}
+                  />
+                </div>
               </div>
-            </div>
-          </Card>
+            </Card>
+          ))}
+
+          <Button 
+            onClick={addStream}
+            className="w-full"
+            variant="outline"
+          >
+            <PlusCircle className="h-4 w-4 mr-2" />
+            Add Investment Stream
+          </Button>
         </div>
 
         <div className="space-y-8">
-          <InvestmentSummary data={investmentData} />
-          <InvestmentChart data={investmentData} />
+          <InvestmentSummary data={investmentData} streams={streams} />
+          <InvestmentChart data={investmentData} streams={streams} />
         </div>
       </div>
     </div>

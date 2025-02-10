@@ -1,11 +1,14 @@
+
 import { Card } from "@/components/ui/card";
 import { InvestmentDataPoint } from "@/lib/investment-utils";
+import { InvestmentStream } from "@/lib/types";
 
 interface InvestmentSummaryProps {
   data: InvestmentDataPoint[];
+  streams: InvestmentStream[];
 }
 
-const InvestmentSummary = ({ data }: InvestmentSummaryProps) => {
+const InvestmentSummary = ({ data, streams }: InvestmentSummaryProps) => {
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -15,19 +18,30 @@ const InvestmentSummary = ({ data }: InvestmentSummaryProps) => {
     }).format(value);
   };
 
-  const finalBalance = data[data.length - 1].balance;
-  const totalContributions = data[data.length - 1].totalContributions;
-  const totalInterest = finalBalance - totalContributions;
-  const finalCostOfLiving = data[data.length - 1].costOfLiving;
+  const finalData = data[data.length - 1];
+  const totalBalance = finalData.combined;
+  const totalContributions = finalData.totalContributions;
+  const totalInterest = totalBalance - totalContributions;
+  const finalCostOfLiving = finalData.costOfLiving;
 
   return (
     <Card className="p-6">
       <h3 className="text-lg font-semibold mb-4">Investment Summary</h3>
-      <div className="space-y-4">
+      <div className="space-y-6">
         <div>
-          <p className="text-sm text-gray-500">Final Balance</p>
-          <p className="text-2xl font-bold text-primary">{formatCurrency(finalBalance)}</p>
+          <p className="text-sm text-gray-500">Combined Final Balance</p>
+          <p className="text-2xl font-bold text-primary">{formatCurrency(totalBalance)}</p>
         </div>
+        
+        {streams.map((stream) => (
+          <div key={stream.id}>
+            <p className="text-sm text-gray-500">{stream.name} Final Balance</p>
+            <p className="text-lg font-semibold">
+              {formatCurrency(finalData.streams[stream.id])}
+            </p>
+          </div>
+        ))}
+
         <div className="grid grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-500">Total Contributions</p>
