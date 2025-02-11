@@ -11,5 +11,6 @@ export interface InvestmentStream {
   postRetirementFrequency: ContributionFrequency;
   interestRate: number;
   withdrawalOrder: number;
+  isActive: boolean;
 }
 

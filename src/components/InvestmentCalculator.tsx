@@ -1,14 +1,17 @@
+
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import InvestmentChart from "./InvestmentChart";
 import InvestmentSummary from "./InvestmentSummary";
 import { calculateInvestmentGrowth } from "@/lib/investment-utils";
 import { ContributionFrequency, InvestmentStream } from "@/lib/types";
 import { PlusCircle, Trash2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const frequencyOptions: ContributionFrequency[] = ['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly'];
 
@@ -27,7 +30,8 @@ export const InvestmentCalculator = () => {
     postRetirementAmount: 0,
     postRetirementFrequency: 'monthly',
     interestRate: 7,
-    withdrawalOrder: 1
+    withdrawalOrder: 1,
+    isActive: true
   }]);
 
   const addStream = () => {
@@ -40,7 +44,8 @@ export const InvestmentCalculator = () => {
       postRetirementAmount: 0,
       postRetirementFrequency: 'monthly',
       interestRate: 7,
-      withdrawalOrder: streams.length + 1
+      withdrawalOrder: streams.length + 1,
+      isActive: true
     };
     setStreams([...streams, newStream]);
   };
@@ -79,6 +84,14 @@ export const InvestmentCalculator = () => {
     }));
   };
 
+  const toggleStream = (id: string) => {
+    setStreams(streams.map(stream =>
+      stream.id === id ? { ...stream, isActive: !stream.isActive } : stream
+    ));
+  };
+
+  const activeStreams = streams.filter(stream => stream.isActive);
+
   const investmentData = calculateInvestmentGrowth(
     currentAge,
     targetAge,
@@ -94,6 +107,14 @@ export const InvestmentCalculator = () => {
         Investment Calculator
       </h1>
       
+      {activeStreams.length === 0 && (
+        <Alert className="mb-8">
+          <AlertDescription>
+            Please activate at least one investment stream to see projections.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid gap-8 md:grid-cols-2">
         <div className="space-y-6">
           {/* General Details Card */}
@@ -166,7 +187,16 @@ export const InvestmentCalculator = () => {
           {streams.map((stream) => (
             <Card key={stream.id} className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">{stream.name}</h2>
+                <div className="flex items-center gap-4">
+                  <h2 className="text-xl font-semibold">{stream.name}</h2>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={stream.isActive}
+                      onCheckedChange={() => toggleStream(stream.id)}
+                    />
+                    <Label>Active</Label>
+                  </div>
+                </div>
                 {streams.length > 1 && (
                   <Button
                     variant="ghost"
@@ -311,10 +341,15 @@ export const InvestmentCalculator = () => {
         </div>
 
         <div className="space-y-8">
-          <InvestmentSummary data={investmentData} streams={streams} />
-          <InvestmentChart data={investmentData} streams={streams} />
+          {activeStreams.length > 0 ? (
+            <>
+              <InvestmentSummary data={investmentData} streams={activeStreams} />
+              <InvestmentChart data={investmentData} streams={activeStreams} />
+            </>
+          ) : null}
         </div>
       </div>
     </div>
   );
 };
+

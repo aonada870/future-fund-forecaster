@@ -29,8 +29,11 @@ const withdrawFromStreams = (
   newBalances: { [key: string]: number },
   remainingWithdrawal: number 
 } => {
+  // Filter active streams
+  const activeStreams = streams.filter(stream => stream.isActive);
+  
   // Sort streams by withdrawal order
-  const sortedStreams = [...streams].sort((a, b) => {
+  const sortedStreams = [...activeStreams].sort((a, b) => {
     if (a.withdrawalOrder === b.withdrawalOrder) {
       // If same order, prefer withdrawing from lower interest rate
       return a.interestRate - b.interestRate;
@@ -100,6 +103,20 @@ export const calculateInvestmentGrowth = (
   costOfLiving: number,
   inflationRate: number,
 ): InvestmentDataPoint[] => {
+  // Filter active streams
+  const activeStreams = streams.filter(stream => stream.isActive);
+  
+  // If no active streams, return empty data
+  if (activeStreams.length === 0) {
+    return [{
+      age: currentAge,
+      streams: {},
+      combined: 0,
+      totalContributions: 0,
+      costOfLiving: costOfLiving
+    }];
+  }
+
   if (currentAge >= targetAge || targetAge >= lifeExpectancy) {
     return [{
       age: currentAge,
@@ -117,8 +134,8 @@ export const calculateInvestmentGrowth = (
   let streamBalances: { [key: string]: number } = {};
   let streamContributions: { [key: string]: number } = {};
   
-  // Initialize starting values
-  streams.forEach(stream => {
+  // Initialize starting values for active streams only
+  activeStreams.forEach(stream => {
     streamBalances[stream.id] = stream.principal;
     streamContributions[stream.id] = stream.principal;
   });
@@ -151,15 +168,15 @@ export const calculateInvestmentGrowth = (
     if (isRetired && !isFullyDepleted) {
       // Handle withdrawals according to order
       const { newBalances } = withdrawFromStreams(
-        streams,
+        activeStreams,
         streamBalances,
         adjustedCostOfLiving
       );
       streamBalances = newBalances;
     }
 
-    // Calculate next year's values for each stream
-    streams.forEach(stream => {
+    // Calculate next year's values for each active stream
+    activeStreams.forEach(stream => {
       const r = stream.interestRate / 100;
       const baseRate = 1 + r/n;
       
@@ -182,3 +199,4 @@ export const calculateInvestmentGrowth = (
 
   return data;
 };
+
