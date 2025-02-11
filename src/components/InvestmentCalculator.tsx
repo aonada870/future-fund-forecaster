@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,7 +26,8 @@ export const InvestmentCalculator = () => {
     contributionFrequency: 'monthly',
     postRetirementAmount: 0,
     postRetirementFrequency: 'monthly',
-    interestRate: 7
+    interestRate: 7,
+    withdrawalOrder: 1
   }]);
 
   const addStream = () => {
@@ -39,14 +39,20 @@ export const InvestmentCalculator = () => {
       contributionFrequency: 'monthly',
       postRetirementAmount: 0,
       postRetirementFrequency: 'monthly',
-      interestRate: 7
+      interestRate: 7,
+      withdrawalOrder: streams.length + 1
     };
     setStreams([...streams, newStream]);
   };
 
   const removeStream = (id: string) => {
     if (streams.length > 1) {
-      setStreams(streams.filter(stream => stream.id !== id));
+      const newStreams = streams.filter(stream => stream.id !== id);
+      const reorderedStreams = newStreams.map((stream, index) => ({
+        ...stream,
+        withdrawalOrder: index + 1
+      }));
+      setStreams(reorderedStreams);
     }
   };
 
@@ -54,6 +60,23 @@ export const InvestmentCalculator = () => {
     setStreams(streams.map(stream => 
       stream.id === id ? { ...stream, ...updates } : stream
     ));
+  };
+
+  const updateWithdrawalOrder = (id: string, newOrder: number) => {
+    const stream = streams.find(s => s.id === id);
+    if (!stream) return;
+
+    const oldOrder = stream.withdrawalOrder;
+    
+    setStreams(streams.map(s => {
+      if (s.id === id) {
+        return { ...s, withdrawalOrder: newOrder };
+      }
+      if (s.withdrawalOrder === newOrder) {
+        return { ...s, withdrawalOrder: oldOrder };
+      }
+      return s;
+    }));
   };
 
   const investmentData = calculateInvestmentGrowth(
@@ -163,6 +186,25 @@ export const InvestmentCalculator = () => {
                     value={stream.name}
                     onChange={(e) => updateStream(stream.id, { name: e.target.value })}
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor={`${stream.id}-withdrawal-order`}>Withdrawal Priority</Label>
+                  <Select
+                    value={stream.withdrawalOrder.toString()}
+                    onValueChange={(value) => updateWithdrawalOrder(stream.id, parseInt(value))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: streams.length }, (_, i) => i + 1).map((order) => (
+                        <SelectItem key={order} value={order.toString()}>
+                          {order}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

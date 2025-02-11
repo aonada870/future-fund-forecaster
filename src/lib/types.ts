@@ -10,4 +10,6 @@ export interface InvestmentStream {
   postRetirementAmount: number;
   postRetirementFrequency: ContributionFrequency;
   interestRate: number;
+  withdrawalOrder: number;
 }
+
