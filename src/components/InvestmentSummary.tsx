@@ -1,6 +1,8 @@
+
 import { Card } from "@/components/ui/card";
 import { InvestmentDataPoint, RequiredContributionResult } from "@/lib/investment-utils";
 import { InvestmentStream } from "@/lib/types";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface InvestmentSummaryProps {
   data: InvestmentDataPoint[];
@@ -9,6 +11,8 @@ interface InvestmentSummaryProps {
 }
 
 const InvestmentSummary = ({ data, streams, requiredContribution }: InvestmentSummaryProps) => {
+  const isMobile = useIsMobile();
+  
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
@@ -25,36 +29,36 @@ const InvestmentSummary = ({ data, streams, requiredContribution }: InvestmentSu
   const finalCostOfLiving = finalData.costOfLiving;
 
   return (
-    <Card className="p-6">
+    <Card className="p-4 sm:p-6">
       <h3 className="text-lg font-semibold mb-4">Investment Summary</h3>
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         <div>
           <p className="text-sm text-gray-500">Combined Final Balance</p>
-          <p className="text-2xl font-bold text-primary">{formatCurrency(totalBalance)}</p>
+          <p className="text-xl sm:text-2xl font-bold text-primary">{formatCurrency(totalBalance)}</p>
         </div>
         
         {streams.map((stream) => (
           <div key={stream.id}>
             <p className="text-sm text-gray-500">{stream.name} Final Balance</p>
-            <p className="text-lg font-semibold">
+            <p className="text-base sm:text-lg font-semibold">
               {formatCurrency(finalData.streams[stream.id])}
             </p>
           </div>
         ))}
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <p className="text-sm text-gray-500">Total Contributions</p>
-            <p className="text-lg font-semibold">{formatCurrency(totalContributions)}</p>
+            <p className="text-base sm:text-lg font-semibold">{formatCurrency(totalContributions)}</p>
           </div>
           <div>
             <p className="text-sm text-gray-500">Total Interest Earned</p>
-            <p className="text-lg font-semibold">{formatCurrency(totalInterest)}</p>
+            <p className="text-base sm:text-lg font-semibold">{formatCurrency(totalInterest)}</p>
           </div>
         </div>
         <div>
           <p className="text-sm text-gray-500">Annual Cost of Living</p>
-          <p className="text-lg font-semibold text-red-500">{formatCurrency(finalCostOfLiving)}</p>
+          <p className="text-base sm:text-lg font-semibold text-red-500">{formatCurrency(finalCostOfLiving)}</p>
         </div>
 
         {requiredContribution && (
@@ -78,7 +82,7 @@ const InvestmentSummary = ({ data, streams, requiredContribution }: InvestmentSu
                       Monthly contribution needed in{' '}
                       <span className="font-semibold">{requiredContribution.stream.name}</span>:
                     </p>
-                    <p className="text-lg font-semibold text-primary">
+                    <p className="text-base sm:text-lg font-semibold text-primary">
                       {formatCurrency(requiredContribution.requiredContribution)}
                     </p>
                     {requiredContribution.currentDepletionAge && (

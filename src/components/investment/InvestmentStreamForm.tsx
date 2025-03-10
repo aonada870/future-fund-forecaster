@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { ContributionFrequency, InvestmentStream } from "@/lib/types";
 import { Trash2 } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface InvestmentStreamFormProps {
   stream: InvestmentStream;
@@ -27,11 +28,13 @@ export const InvestmentStreamForm = ({
   onToggle,
   onUpdateWithdrawalOrder,
 }: InvestmentStreamFormProps) => {
+  const isMobile = useIsMobile();
+
   return (
-    <Card className="p-6">
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-4">
-          <h2 className="text-xl font-semibold">{stream.name}</h2>
+    <Card className="p-4 sm:p-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+          <h2 className="text-lg sm:text-xl font-semibold">{stream.name}</h2>
           <div className="flex items-center gap-2">
             <Switch
               checked={stream.isActive}
@@ -45,6 +48,7 @@ export const InvestmentStreamForm = ({
             variant="ghost"
             size="icon"
             onClick={() => onRemove(stream.id)}
+            className="self-end sm:self-auto"
           >
             <Trash2 className="h-4 w-4" />
           </Button>
@@ -91,7 +95,7 @@ export const InvestmentStreamForm = ({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor={`${stream.id}-contribution`}>Contribution Amount ($)</Label>
             <Input
@@ -124,7 +128,7 @@ export const InvestmentStreamForm = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor={`${stream.id}-post-retirement`}>Post-Retirement Amount ($)</Label>
             <Input

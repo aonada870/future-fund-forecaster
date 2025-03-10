@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -105,20 +106,20 @@ export const InvestmentCalculator = () => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-6xl">
-      <h1 className="text-4xl font-bold text-center mb-8 text-primary">
+    <div className="mx-auto px-4 py-4 sm:py-8 max-w-6xl">
+      <h1 className="text-2xl sm:text-4xl font-bold text-center mb-6 sm:mb-8 text-primary">
         Investment Calculator
       </h1>
       
       {activeStreams.length === 0 && (
-        <Alert className="mb-8">
+        <Alert className="mb-6 sm:mb-8">
           <AlertDescription>
             Please activate at least one investment stream to see projections.
           </AlertDescription>
         </Alert>
       )}
 
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <div className="space-y-6">
           <GeneralDetailsForm
             currentAge={currentAge}
@@ -155,7 +156,7 @@ export const InvestmentCalculator = () => {
           </Button>
         </div>
 
-        <div className="space-y-8">
+        <div className="space-y-6">
           {activeStreams.length > 0 ? (
             <>
               <InvestmentSummary 
