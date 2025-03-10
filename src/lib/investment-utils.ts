@@ -1,4 +1,3 @@
-
 import { ContributionFrequency, InvestmentStream } from "./types";
 
 export interface InvestmentDataPoint {
@@ -8,6 +7,13 @@ export interface InvestmentDataPoint {
   totalContributions: number;
   costOfLiving: number;
   isFullyDepleted?: boolean;
+}
+
+export interface RequiredContributionResult {
+  stream: InvestmentStream;
+  requiredContribution: number;
+  extendedRetirementAge?: number;
+  currentDepletionAge?: number;
 }
 
 const getAnnualContribution = (amount: number, frequency: ContributionFrequency): number => {
@@ -200,3 +206,108 @@ export const calculateInvestmentGrowth = (
   return data;
 };
 
+export const calculateRequiredContribution = (
+  currentAge: number,
+  targetAge: number,
+  lifeExpectancy: number,
+  streams: InvestmentStream[],
+  costOfLiving: number,
+  inflationRate: number,
+  maxMonthlyContribution = 10000 // Maximum reasonable monthly contribution
+): RequiredContributionResult => {
+  const activeStreams = streams.filter(stream => stream.isActive);
+  if (activeStreams.length === 0) {
+    return null;
+  }
+
+  // Find target stream (last in withdrawal order, highest interest rate, highest principal)
+  const targetStream = [...activeStreams].sort((a, b) => {
+    if (a.withdrawalOrder !== b.withdrawalOrder) {
+      return b.withdrawalOrder - a.withdrawalOrder;
+    }
+    if (a.interestRate !== b.interestRate) {
+      return b.interestRate - a.interestRate;
+    }
+    return b.principal - a.principal;
+  })[0];
+
+  // Find current depletion age
+  const baseProjection = calculateInvestmentGrowth(
+    currentAge,
+    targetAge,
+    lifeExpectancy,
+    streams,
+    costOfLiving,
+    inflationRate
+  );
+
+  const currentDepletionAge = baseProjection.findIndex(point => point.isFullyDepleted);
+  
+  if (currentDepletionAge === -1) {
+    // No depletion occurs, no additional contribution needed
+    return {
+      stream: targetStream,
+      requiredContribution: 0,
+      currentDepletionAge: null
+    };
+  }
+
+  // Binary search for required contribution
+  let low = 0;
+  let high = maxMonthlyContribution * 12; // Convert to annual
+  let bestContribution = high;
+  let extendedRetirementAge = null;
+
+  while (low <= high) {
+    const mid = Math.floor((low + high) / 2);
+    const testStreams = streams.map(s => 
+      s.id === targetStream.id 
+        ? { ...s, contributionAmount: mid / 12 } // Convert back to monthly for testing
+        : s
+    );
+
+    const projection = calculateInvestmentGrowth(
+      currentAge,
+      targetAge,
+      lifeExpectancy,
+      testStreams,
+      costOfLiving,
+      inflationRate
+    );
+
+    const depletes = projection.some(point => point.isFullyDepleted);
+
+    if (depletes) {
+      low = mid + 1;
+    } else {
+      bestContribution = mid;
+      high = mid - 1;
+    }
+  }
+
+  // If contribution is unreasonably high, calculate extended retirement age
+  if (bestContribution >= maxMonthlyContribution * 12) {
+    for (let newTargetAge = targetAge + 1; newTargetAge < lifeExpectancy; newTargetAge++) {
+      const projection = calculateInvestmentGrowth(
+        currentAge,
+        newTargetAge,
+        lifeExpectancy,
+        streams,
+        costOfLiving,
+        inflationRate
+      );
+
+      if (!projection.some(point => point.isFullyDepleted)) {
+        extendedRetirementAge = newTargetAge;
+        break;
+      }
+    }
+  }
+
+  return {
+    stream: targetStream,
+    requiredContribution: bestContribution / 12, // Convert back to monthly
+    extendedRetirementAge,
+    currentDepletionAge: currentDepletionAge + currentAge
+  };
+};

@@ -1,10 +1,9 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import InvestmentChart from "./InvestmentChart";
 import InvestmentSummary from "./InvestmentSummary";
-import { calculateInvestmentGrowth } from "@/lib/investment-utils";
+import { calculateInvestmentGrowth, calculateRequiredContribution } from "@/lib/investment-utils";
 import { InvestmentStream } from "@/lib/types";
 import { PlusCircle } from "lucide-react";
 import { GeneralDetailsForm } from "./investment/GeneralDetailsForm";
@@ -96,6 +95,15 @@ export const InvestmentCalculator = () => {
     inflationRate
   );
 
+  const requiredContribution = calculateRequiredContribution(
+    currentAge,
+    targetAge,
+    lifeExpectancy,
+    streams,
+    costOfLiving,
+    inflationRate
+  );
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
       <h1 className="text-4xl font-bold text-center mb-8 text-primary">
@@ -150,7 +158,11 @@ export const InvestmentCalculator = () => {
         <div className="space-y-8">
           {activeStreams.length > 0 ? (
             <>
-              <InvestmentSummary data={investmentData} streams={activeStreams} />
+              <InvestmentSummary 
+                data={investmentData} 
+                streams={activeStreams}
+                requiredContribution={requiredContribution}
+              />
               <InvestmentChart data={investmentData} streams={activeStreams} />
             </>
           ) : null}
